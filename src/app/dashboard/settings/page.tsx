@@ -12,7 +12,7 @@ import {
   import { Button } from '@/components/ui/button';
   import { Input } from '@/components/ui/input';
   import { Label } from '@/components/ui/label';
-  import { Upload, Clock } from 'lucide-react';
+  import { Upload } from 'lucide-react';
   import { useToast } from "@/hooks/use-toast"
   import { Switch } from '@/components/ui/switch';
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,23 +32,28 @@ import {
     const minute = i % 2 === 0 ? '00' : '30';
     return `${hour.toString().padStart(2, '0')}:${minute}`;
   });
+
+  type OperatingHours = {
+    isOpen: boolean;
+    openingTime: string;
+    closingTime: string;
+  };
   
   export default function SettingsPage() {
     const { toast } = useToast();
     const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
     const [primaryColor, setPrimaryColor] = React.useState('#1A237E');
     const [accentColor, setAccentColor] = React.useState('#FF5722');
-    const [operatingDays, setOperatingDays] = React.useState<Record<string, boolean>>({
-        segunda: true,
-        terca: true,
-        quarta: true,
-        quinta: true,
-        sexta: true,
-        sabado: true,
-        domingo: false,
+    const [operatingHours, setOperatingHours] = React.useState<Record<string, OperatingHours>>({
+        segunda: { isOpen: true, openingTime: '09:00', closingTime: '19:00' },
+        terca: { isOpen: true, openingTime: '09:00', closingTime: '19:00' },
+        quarta: { isOpen: true, openingTime: '09:00', closingTime: '19:00' },
+        quinta: { isOpen: true, openingTime: '09:00', closingTime: '19:00' },
+        sexta: { isOpen: true, openingTime: '09:00', closingTime: '20:00' },
+        sabado: { isOpen: true, openingTime: '08:00', closingTime: '18:00' },
+        domingo: { isOpen: false, openingTime: '09:00', closingTime: '19:00' },
     });
-    const [openingTime, setOpeningTime] = React.useState('08:00');
-    const [closingTime, setClosingTime] = React.useState('20:00');
+
 
     const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -61,8 +66,11 @@ import {
         }
     }
 
-    const handleDayToggle = (dayId: string) => {
-        setOperatingDays(prev => ({ ...prev, [dayId]: !prev[dayId] }));
+    const handleOperatingHoursChange = (dayId: string, field: keyof OperatingHours, value: string | boolean) => {
+        setOperatingHours(prev => ({
+            ...prev,
+            [dayId]: { ...prev[dayId], [field]: value }
+        }));
     };
 
     const handleSaveChanges = () => {
@@ -159,39 +167,49 @@ import {
                     <CardContent className="space-y-4">
                          <div className="space-y-3">
                             {weekDays.map(day => (
-                                <div key={day.id} className="flex items-center justify-between rounded-lg border p-3">
-                                    <Label htmlFor={day.id} className="font-medium">{day.label}</Label>
-                                    <Switch
-                                        id={day.id}
-                                        checked={operatingDays[day.id]}
-                                        onCheckedChange={() => handleDayToggle(day.id)}
-                                    />
+                                <div key={day.id} className="space-y-3">
+                                    <div className="flex items-center justify-between rounded-lg border p-3">
+                                        <Label htmlFor={day.id} className="font-medium">{day.label}</Label>
+                                        <Switch
+                                            id={day.id}
+                                            checked={operatingHours[day.id]?.isOpen}
+                                            onCheckedChange={(checked) => handleOperatingHoursChange(day.id, 'isOpen', checked)}
+                                        />
+                                    </div>
+                                    {operatingHours[day.id]?.isOpen && (
+                                        <div className="flex items-center gap-4 pl-3">
+                                            <div className="flex-1 space-y-1">
+                                                <Label htmlFor={`opening-time-${day.id}`} className="text-xs">Abertura</Label>
+                                                <Select 
+                                                    value={operatingHours[day.id]?.openingTime} 
+                                                    onValueChange={(value) => handleOperatingHoursChange(day.id, 'openingTime', value)}
+                                                >
+                                                    <SelectTrigger id={`opening-time-${day.id}`}>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {timeSlots.map(time => <SelectItem key={`open-${day.id}-${time}`} value={time}>{time}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <Label htmlFor={`closing-time-${day.id}`} className="text-xs">Fechamento</Label>
+                                                <Select 
+                                                    value={operatingHours[day.id]?.closingTime} 
+                                                    onValueChange={(value) => handleOperatingHoursChange(day.id, 'closingTime', value)}
+                                                >
+                                                    <SelectTrigger id={`closing-time-${day.id}`}>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {timeSlots.map(time => <SelectItem key={`close-${day.id}-${time}`} value={time}>{time}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
-                         </div>
-                         <div className="flex items-center gap-4 pt-2">
-                            <div className="flex-1 space-y-1">
-                                <Label htmlFor="opening-time">Abertura</Label>
-                                <Select value={openingTime} onValueChange={setOpeningTime}>
-                                    <SelectTrigger id="opening-time">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {timeSlots.map(time => <SelectItem key={`open-${time}`} value={time}>{time}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                             <div className="flex-1 space-y-1">
-                                <Label htmlFor="closing-time">Fechamento</Label>
-                                <Select value={closingTime} onValueChange={setClosingTime}>
-                                    <SelectTrigger id="closing-time">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {timeSlots.map(time => <SelectItem key={`close-${time}`} value={time}>{time}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                          </div>
                     </CardContent>
                 </Card>
