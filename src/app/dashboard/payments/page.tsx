@@ -52,6 +52,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 
 const paymentSchema = z.object({
@@ -102,6 +103,8 @@ const serviceOptions = [
 export default function PaymentsPage() {
     const [payments, setPayments] = React.useState<Payment[]>(initialPayments);
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+    const [isDetailsDialogOpen, setIsDetailsDialogOpen] = React.useState(false);
+    const [selectedPayment, setSelectedPayment] = React.useState<Payment | null>(null);
     
     const form = useForm<PaymentFormValues>({
         resolver: zodResolver(paymentSchema),
@@ -138,6 +141,11 @@ export default function PaymentsPage() {
         form.reset();
         setIsAddDialogOpen(false);
     };
+
+    const openDetailsDialog = (payment: Payment) => {
+        setSelectedPayment(payment);
+        setIsDetailsDialogOpen(true);
+    }
 
     return (
       <div className="flex flex-col gap-6">
@@ -389,7 +397,9 @@ export default function PaymentsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openDetailsDialog(payment)}>
+                            Ver Detalhes
+                          </DropdownMenuItem>
                           <DropdownMenuItem>Gerar Recibo</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -407,6 +417,57 @@ export default function PaymentsPage() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Details Dialog */}
+        <Dialog open={isDetailsDialogOpen} onOpenChange={(isOpen) => { setIsDetailsDialogOpen(isOpen); if (!isOpen) setSelectedPayment(null); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Pagamento</DialogTitle>
+              <DialogDescription>
+                Informações detalhadas sobre a transação.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedPayment && (
+              <div className="space-y-4 py-4">
+                <div className="flex flex-col space-y-1">
+                    <span className="text-sm text-muted-foreground">Cliente</span>
+                    <span className="font-semibold">{selectedPayment.client}</span>
+                </div>
+                <Separator />
+                <div className="flex flex-col space-y-1">
+                    <span className="text-sm text-muted-foreground">Serviço(s)</span>
+                    <span className="font-semibold">{selectedPayment.service}</span>
+                </div>
+                <Separator />
+                <div className="flex flex-col space-y-1">
+                    <span className="text-sm text-muted-foreground">Valor Total</span>
+                    <span className="font-semibold">{selectedPayment.amount}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between">
+                    <div className="flex flex-col space-y-1">
+                        <span className="text-sm text-muted-foreground">Data</span>
+                        <span className="font-semibold">{selectedPayment.date}</span>
+                    </div>
+                     <div className="flex flex-col space-y-1 items-end">
+                        <span className="text-sm text-muted-foreground">Forma de Pagamento</span>
+                        <Badge 
+                            variant={selectedPayment.method === 'Fiado' ? 'destructive' : 'default'}
+                        >
+                            {selectedPayment.method}
+                        </Badge>
+                    </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Fechar</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     );
   }
