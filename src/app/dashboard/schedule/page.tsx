@@ -1,14 +1,15 @@
 "use client";
 
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Filter } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,6 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Form,
@@ -50,13 +50,13 @@ interface Appointment {
 }
 
 const initialAppointments: Appointment[] = [
-    { time: '09:00', client: 'João Silva', service: 'Corte Degradê', barber: 'Renato', status: 'Confirmado' },
-    { time: '10:00', client: 'Mariana Costa', service: 'Barba Terapia', barber: 'Marcos', status: 'Confirmado' },
-    { time: '10:30', client: 'Pedro Almeida', service: 'Corte Simples', barber: 'Renato', status: 'Finalizado' },
-    { time: '11:00', client: 'Ana Beatriz', service: 'Penteado', barber: 'Júlia', status: 'Confirmado' },
-    { time: '12:00', client: 'Lucas Oliveira', service: 'Barba e Cabelo', barber: 'Marcos', status: 'Aguardando' },
-    { time: '14:00', client: 'Fernanda Lima', service: 'Corte Feminino', barber: 'Júlia', status: 'Confirmado' },
-    { time: '15:00', client: 'Ricardo Souza', service: 'Corte Degradê', barber: 'Renato', status: 'Cancelado' },
+    { time: '09:00', client: 'João Silva', service: 'Corte Degradê', barber: 'Renato Garcia', status: 'Confirmado' },
+    { time: '10:00', client: 'Mariana Costa', service: 'Barba Terapia', barber: 'Marcos Andrade', status: 'Confirmado' },
+    { time: '10:30', client: 'Pedro Almeida', service: 'Corte Simples', barber: 'Renato Garcia', status: 'Finalizado' },
+    { time: '11:00', client: 'Ana Beatriz', service: 'Penteado', barber: 'Júlia Martins', status: 'Confirmado' },
+    { time: '12:00', client: 'Lucas Oliveira', service: 'Barba e Cabelo', barber: 'Marcos Andrade', status: 'Aguardando' },
+    { time: '14:00', client: 'Fernanda Lima', service: 'Corte Feminino', barber: 'Júlia Martins', status: 'Confirmado' },
+    { time: '15:00', client: 'Ricardo Souza', service: 'Corte Degradê', barber: 'Renato Garcia', status: 'Cancelado' },
 ];
 
 const barbers = [
@@ -64,21 +64,32 @@ const barbers = [
     { id: '2', name: 'Marcos Andrade' },
     { id: '3', name: 'Júlia Martins' },
     { id: '4', name: 'Lucas Pereira' },
-  ];
+];
 
 const services = [
-    { id: '1', name: 'Corte Degradê' },
-    { id: '2', name: 'Corte Simples' },
-    { id: '3', name: 'Barba Terapia' },
-    { id: '4', name: 'Barba e Cabelo' },
-    { id: '5', name: 'Penteado' },
-    { id: '6', name: 'Hidratação' },
-  ];
+    { id: '1', name: 'Corte Degradê', duration: 45 },
+    { id: '2', name: 'Corte Simples', duration: 30 },
+    { id: '3', name: 'Barba Terapia', duration: 40 },
+    { id: '4', name: 'Barba e Cabelo', duration: 75 },
+    { id: '5', name: 'Penteado', duration: 50 },
+    { id: '6', name: 'Hidratação', duration: 60 },
+];
+
+const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const hour = i + 8; // Barbershop opens at 8 AM
+    if (hour > 20) return null; // Closes after 8 PM
+    return [`${hour.toString().padStart(2, '0')}:00`, `${hour.toString().padStart(2, '0')}:30`];
+  }).flat().filter(Boolean) as string[];
 
 export default function SchedulePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const barberFilterParam = searchParams.get('barber');
+
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [appointments, setAppointments] = React.useState<Appointment[]>(initialAppointments);
+  const [barberFilter, setBarberFilter] = React.useState(barberFilterParam || 'todos');
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -90,6 +101,13 @@ export default function SchedulePage() {
       time: '',
     },
   });
+  
+  React.useEffect(() => {
+    if (barberFilterParam) {
+      setBarberFilter(barberFilterParam);
+    }
+  }, [barberFilterParam]);
+
 
   const onSubmit = (data: AppointmentFormValues) => {
     const newAppointment: Appointment = {
@@ -106,124 +124,183 @@ export default function SchedulePage() {
     form.reset();
     setIsDialogOpen(false);
   };
+  
+  const selectedBarberForNewAppointment = form.watch('barber');
+
+  const availableTimeSlots = React.useMemo(() => {
+    if (!selectedBarberForNewAppointment) {
+      return timeSlots;
+    }
+    const barberAppointments = appointments.filter(
+      (apt) => apt.barber === selectedBarberForNewAppointment
+    );
+    return timeSlots.filter(
+      (slot) => !barberAppointments.some((apt) => apt.time === slot)
+    );
+  }, [appointments, selectedBarberForNewAppointment]);
+
+  const filteredAppointments = React.useMemo(() => {
+    if (barberFilter === 'todos') {
+      return appointments;
+    }
+    return appointments.filter(apt => apt.barber === barberFilter);
+  }, [appointments, barberFilter]);
+
+  const handleFilterChange = (barberName: string) => {
+    setBarberFilter(barberName);
+    const params = new URLSearchParams(searchParams);
+    if (barberName === 'todos') {
+      params.delete('barber');
+    } else {
+      params.set('barber', barberName);
+    }
+    router.push(`/dashboard/schedule?${params.toString()}`);
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Agenda</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Agendamento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Novo Agendamento</DialogTitle>
-              <DialogDescription>
-                Preencha os detalhes abaixo para criar um novo agendamento.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="clientPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone do Cliente (Opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="(99) 99999-9999" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="client"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Cliente</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome do Cliente" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="service"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Serviço</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um serviço" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {services.map((service) => (
-                            <SelectItem key={service.id} value={service.name}>
-                              {service.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="barber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Barbeiro</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um barbeiro" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {barbers.map((barber) => (
-                            <SelectItem key={barber.id} value={barber.name}>
-                              {barber.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horário</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancelar</Button>
-                  </DialogClose>
-                  <Button type="submit">Salvar Agendamento</Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+            <Select value={barberFilter} onValueChange={handleFilterChange}>
+                <SelectTrigger className="w-[180px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Filtrar por barbeiro" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="todos">Todos os Barbeiros</SelectItem>
+                    {barbers.map((barber) => (
+                        <SelectItem key={barber.id} value={barber.name}>
+                        {barber.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Novo Agendamento
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                    <DialogTitle>Novo Agendamento</DialogTitle>
+                    <DialogDescription>
+                        Preencha os detalhes abaixo para criar um novo agendamento.
+                    </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                        control={form.control}
+                        name="clientPhone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Telefone do Cliente (Opcional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="(99) 99999-9999" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="client"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Nome do Cliente</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Nome do Cliente" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="barber"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Barbeiro</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione um barbeiro" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {barbers.map((barber) => (
+                                        <SelectItem key={barber.id} value={barber.name}>
+                                        {barber.name}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="service"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Serviço</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um serviço" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {services.map((service) => (
+                                    <SelectItem key={service.id} value={service.name}>
+                                    {service.name}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="time"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Horário</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedBarberForNewAppointment}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={!selectedBarberForNewAppointment ? "Selecione um barbeiro primeiro" : "Selecione um horário"} />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {availableTimeSlots.map((slot) => (
+                                    <SelectItem key={slot} value={slot}>
+                                    {slot}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">Cancelar</Button>
+                        </DialogClose>
+                        <Button type="submit">Salvar Agendamento</Button>
+                        </DialogFooter>
+                    </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -249,7 +326,7 @@ export default function SchedulePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {appointments.map((apt, index) => (
+            {filteredAppointments.map((apt, index) => (
               <div key={index} className="flex items-center gap-4 rounded-lg border p-4">
                 <div className="font-bold text-primary">{apt.time}</div>
                 <div className="flex-1">
@@ -271,7 +348,7 @@ export default function SchedulePage() {
                 </div>
               </div>
             ))}
-             {appointments.length === 0 && (
+             {filteredAppointments.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
                     Nenhum agendamento para este dia.
                 </div>

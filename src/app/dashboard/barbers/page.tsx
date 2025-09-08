@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -99,6 +99,7 @@ export default function BarbersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [selectedBarber, setSelectedBarber] = React.useState<Barber | null>(null);
+  const router = useRouter();
 
   const form = useForm<BarberFormValues>({
     resolver: zodResolver(barberSchema),
@@ -152,6 +153,10 @@ export default function BarbersPage() {
   const openDeleteDialog = (barber: Barber) => {
     setSelectedBarber(barber);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleViewSchedule = (barberName: string) => {
+    router.push(`/dashboard/schedule?barber=${encodeURIComponent(barberName)}`);
   };
 
   return (
@@ -276,8 +281,8 @@ export default function BarbersPage() {
                         <DropdownMenuItem onSelect={() => openEditDialog(barber)}>
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                           <Link href="/dashboard/schedule">Ver Agenda</Link>
+                        <DropdownMenuItem onSelect={() => handleViewSchedule(barber.name)}>
+                           Ver Agenda
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(barber)}>
