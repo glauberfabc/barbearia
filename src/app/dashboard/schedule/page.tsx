@@ -1,17 +1,54 @@
-"use client"
+"use client";
 
 import React from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 
-const appointments = [
+const appointmentSchema = z.object({
+  client: z.string().min(1, { message: "O nome do cliente é obrigatório." }),
+  service: z.string().min(1, { message: "Selecione um serviço." }),
+  barber: z.string().min(1, { message: "Selecione um barbeiro." }),
+  time: z.string().min(1, { message: "O horário é obrigatório." }),
+});
+
+type AppointmentFormValues = z.infer<typeof appointmentSchema>;
+
+interface Appointment {
+    time: string;
+    client: string;
+    service: string;
+    barber: string;
+    status: 'Confirmado' | 'Finalizado' | 'Cancelado' | 'Aguardando';
+}
+
+const initialAppointments: Appointment[] = [
     { time: '09:00', client: 'João Silva', service: 'Corte Degradê', barber: 'Renato', status: 'Confirmado' },
     { time: '10:00', client: 'Mariana Costa', service: 'Barba Terapia', barber: 'Marcos', status: 'Confirmado' },
     { time: '10:30', client: 'Pedro Almeida', service: 'Corte Simples', barber: 'Renato', status: 'Finalizado' },
@@ -40,12 +77,30 @@ const services = [
 export default function SchedulePage() {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [appointments, setAppointments] = React.useState<Appointment[]>(initialAppointments);
 
-  const handleNewAppointment = () => {
-    // Aqui você adicionaria a lógica para salvar o agendamento
-    console.log("Novo agendamento salvo!");
-    setIsDialogOpen(false); // Fecha o dialog após salvar
-  }
+  const form = useForm<AppointmentFormValues>({
+    resolver: zodResolver(appointmentSchema),
+    defaultValues: {
+      client: '',
+      service: '',
+      barber: '',
+      time: '',
+    },
+  });
+
+  const onSubmit = (data: AppointmentFormValues) => {
+    const newAppointment: Appointment = {
+      ...data,
+      status: 'Confirmado',
+    };
+    const sortedAppointments = [...appointments, newAppointment].sort((a, b) =>
+        a.time.localeCompare(b.time)
+    );
+    setAppointments(sortedAppointments);
+    form.reset();
+    setIsDialogOpen(false);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -65,62 +120,90 @@ export default function SchedulePage() {
                 Preencha os detalhes abaixo para criar um novo agendamento.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="client" className="text-right">
-                  Cliente
-                </Label>
-                <Input id="client" placeholder="Nome do Cliente" className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="service" className="text-right">
-                  Serviço
-                </Label>
-                <Select>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecione um serviço" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map(service => (
-                        <SelectItem key={service.id} value={service.name}>{service.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="barber" className="text-right">
-                  Barbeiro
-                </Label>
-                <Select>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecione um barbeiro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {barbers.map(barber => (
-                        <SelectItem key={barber.id} value={barber.name}>{barber.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
-                  Data
-                </Label>
-                <Input id="date" type="date" defaultValue={date?.toISOString().split('T')[0]} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="time" className="text-right">
-                  Horário
-                </Label>
-                <Input id="time" type="time" className="col-span-3" />
-              </div>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="client"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cliente</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do Cliente" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="service"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Serviço</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um serviço" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {services.map((service) => (
+                            <SelectItem key={service.id} value={service.name}>
+                              {service.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="barber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Barbeiro</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um barbeiro" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {barbers.map((barber) => (
+                            <SelectItem key={barber.id} value={barber.name}>
+                              {barber.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horário</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
-                </DialogClose>
-                <Button type="submit" onClick={handleNewAppointment}>Salvar Agendamento</Button>
-            </DialogFooter>
+                  </DialogClose>
+                  <Button type="submit">Salvar Agendamento</Button>
+                </DialogFooter>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
@@ -136,7 +219,6 @@ export default function SchedulePage() {
               selected={date}
               onSelect={setDate}
               className="rounded-md border"
-              
             />
           </CardContent>
         </Card>
