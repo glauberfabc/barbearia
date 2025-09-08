@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -60,6 +61,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePaymentStore } from '@/stores/payment-store';
 
 const productSchema = z.object({
     name: z.string().min(1, { message: "O nome do produto é obrigatório." }),
@@ -92,6 +94,8 @@ export default function ProductsPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
+    const router = useRouter();
+    const { setInitialPayment } = usePaymentStore();
 
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
@@ -138,6 +142,15 @@ export default function ProductsPage() {
         }
         setIsDeleteDialogOpen(false);
         setSelectedProduct(null);
+    };
+
+    const handleRegisterSale = (product: Product) => {
+        const priceNumber = parseFloat(product.price.replace('R$', '').replace(',', '.').trim());
+        setInitialPayment({
+            services: [product.name],
+            amount: priceNumber,
+        });
+        router.push('/dashboard/payments');
     };
 
     const openEditDialog = (product: Product) => {
@@ -269,7 +282,7 @@ export default function ProductsPage() {
                           <DropdownMenuItem onSelect={() => openEditDialog(product)}>
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Registrar Venda</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleRegisterSale(product)}>Registrar Venda</DropdownMenuItem>
                            <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(product)}>
                             Excluir

@@ -53,6 +53,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { usePaymentStore } from '@/stores/payment-store';
 
 
 const paymentSchema = z.object({
@@ -98,6 +99,11 @@ const serviceOptions = [
     { id: '4', name: 'Barba e Cabelo', price: 75.00 },
     { id: '5', name: 'Penteado', price: 50.00 },
     { id: '6', name: 'Barba', price: 30.00 },
+    { id: '7', name: 'Pomada Modeladora', price: 30.00 },
+    { id: '8', name: 'Gel Fixador', price: 20.00 },
+    { id: '9', name: 'Cerveja Artesanal', price: 15.00 },
+    { id: '10', name: 'Refrigerante', price: 5.00 },
+    { id: '11', name: 'Shampoo para Barba', price: 40.00 },
 ];
   
 export default function PaymentsPage() {
@@ -105,6 +111,7 @@ export default function PaymentsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = React.useState(false);
     const [selectedPayment, setSelectedPayment] = React.useState<Payment | null>(null);
+    const { initialPayment, clearInitialPayment } = usePaymentStore();
     
     const form = useForm<PaymentFormValues>({
         resolver: zodResolver(paymentSchema),
@@ -115,6 +122,19 @@ export default function PaymentsPage() {
           method: 'Dinheiro',
         },
     });
+
+    React.useEffect(() => {
+        if (initialPayment) {
+            form.reset({
+                client: '',
+                services: initialPayment.services || [],
+                amount: initialPayment.amount || 0,
+                method: 'Dinheiro'
+            });
+            setIsAddDialogOpen(true);
+            clearInitialPayment(); 
+        }
+    }, [initialPayment, form, clearInitialPayment]);
 
     const watchServices = form.watch('services');
 
@@ -147,11 +167,18 @@ export default function PaymentsPage() {
         setIsDetailsDialogOpen(true);
     }
 
+    const onAddDialogChange = (isOpen: boolean) => {
+        setIsAddDialogOpen(isOpen);
+        if (!isOpen) {
+            form.reset();
+        }
+    }
+
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Pagamentos</h1>
-          <Dialog open={isAddDialogOpen} onOpenChange={(isOpen) => { setIsAddDialogOpen(isOpen); if (!isOpen) form.reset(); }}>
+          <Dialog open={isAddDialogOpen} onOpenChange={onAddDialogChange}>
                 <DialogTrigger asChild>
                     <Button>
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -232,7 +259,7 @@ export default function PaymentsPage() {
                             name="services"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Serviços</FormLabel>
+                                <FormLabel>Serviços/Produtos</FormLabel>
                                 <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -263,16 +290,16 @@ export default function PaymentsPage() {
                                             </Badge>
                                         ))
                                         ) : (
-                                        <span className="text-muted-foreground">Selecione os serviços</span>
+                                        <span className="text-muted-foreground">Selecione os serviços/produtos</span>
                                         )}
                                     </div>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-[375px] p-0">
                                     <Command>
-                                        <CommandInput placeholder="Buscar serviço..." />
+                                        <CommandInput placeholder="Buscar serviço ou produto..." />
                                         <CommandList>
-                                            <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
+                                            <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
                                             <CommandGroup>
                                                 {serviceOptions.map((option) => {
                                                     const isSelected = field.value.includes(option.name);
@@ -313,7 +340,7 @@ export default function PaymentsPage() {
                                 <FormItem>
                                 <FormLabel>Valor Total</FormLabel>
                                 <FormControl>
-                                    <Input type="number" step="0.01" placeholder="R$ 0,00" {...field} />
+                                    <Input type="number" step="0.01" placeholder="R$ 0,00" {...field} readOnly className="bg-muted"/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
