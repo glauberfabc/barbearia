@@ -10,6 +10,8 @@ import {
   Scissors,
   Settings,
   Users,
+  CreditCard,
+  BookUser,
 } from 'lucide-react';
 
 import {
@@ -43,6 +45,8 @@ const navItems = [
   { href: '/dashboard/barbers', icon: Users, label: 'Barbeiros' },
   { href: '/dashboard/services', icon: Scissors, label: 'Serviços' },
   { href: '/dashboard/products', icon: Package, label: 'Produtos' },
+  { href: '/dashboard/payments', icon: CreditCard, label: 'Pagamentos' },
+  { href: '/dashboard/debts', icon: BookUser, label: 'Fiados' },
   { href: '/dashboard/analytics', icon: BarChart2, label: 'Análises' },
   { href: '/dashboard/settings', icon: Settings, label: 'Configurações' },
 ];
@@ -65,10 +69,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href} passHref>
                   <SidebarMenuButton
                     as="a"
-                    href={item.href}
                     isActive={pathname === item.href}
                     tooltip={item.label}
                     className={cn(
