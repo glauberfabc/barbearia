@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -21,7 +20,7 @@ import {
     CardDescription
   } from '@/components/ui/card';
   import { Button } from '@/components/ui/button';
-  import { PlusCircle, MoreHorizontal } from 'lucide-react';
+  import { PlusCircle, MoreHorizontal, Check, ChevronsUpDown, X } from 'lucide-react';
   import {
     DropdownMenu,
     DropdownMenuContent,
@@ -50,10 +49,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+
 
 const paymentSchema = z.object({
     client: z.string().min(1, { message: "Selecione um cliente." }),
-    service: z.string().min(1, { message: "Selecione um serviço." }),
+    services: z.array(z.string()).min(1, { message: "Selecione pelo menos um serviço." }),
     amount: z.coerce.number().min(0.01, { message: "O valor deve ser maior que zero." }),
     method: z.enum(['Dinheiro', 'Cartão', 'Pix', 'Fiado']),
 });
@@ -78,14 +81,16 @@ const initialPayments: Payment[] = [
 ];
 
 const clients = [
-    { id: '1', name: 'Carlos Silva' },
-    { id: '2', name: 'Mariana Costa' },
-    { id: '3', name: 'João Pereira' },
-    { id: '4', name: 'Ana Beatriz' },
-    { id: '5', name: 'Pedro Almeida' },
+    { value: 'Carlos Silva', label: 'Carlos Silva' },
+    { value: 'Mariana Costa', label: 'Mariana Costa' },
+    { value: 'João Pereira', label: 'João Pereira' },
+    { value: 'Ana Beatriz', label: 'Ana Beatriz' },
+    { value: 'Pedro Almeida', label: 'Pedro Almeida' },
+    { value: 'Ricardo Gomes', label: 'Ricardo Gomes' },
+    { value: 'Felipe Melo', label: 'Felipe Melo' },
 ];
 
-const services = [
+const serviceOptions = [
     { id: '1', name: 'Corte Degradê', price: 45.00 },
     { id: '2', name: 'Corte Simples', price: 35.00 },
     { id: '3', name: 'Barba Terapia', price: 40.00 },
@@ -102,24 +107,29 @@ export default function PaymentsPage() {
         resolver: zodResolver(paymentSchema),
         defaultValues: {
           client: '',
-          service: '',
+          services: [],
           amount: 0,
           method: 'Dinheiro',
         },
     });
 
-    const handleServiceChange = (serviceName: string) => {
-        const selectedService = services.find(s => s.name === serviceName);
-        if (selectedService) {
-            form.setValue('amount', selectedService.price);
+    const watchServices = form.watch('services');
+
+    React.useEffect(() => {
+        if (watchServices) {
+            const total = watchServices.reduce((acc, currentService) => {
+                const service = serviceOptions.find(s => s.name === currentService);
+                return acc + (service ? service.price : 0);
+            }, 0);
+            form.setValue('amount', total);
         }
-    };
+    }, [watchServices, form]);
     
     const handleAddSubmit = (data: PaymentFormValues) => {
         const newPayment: Payment = {
           id: Math.max(...payments.map(p => p.id), 0) + 1,
           client: data.client,
-          service: data.service,
+          service: data.services.join(', '),
           amount: `R$ ${data.amount.toFixed(2).replace('.', ',')}`,
           method: data.method,
           date: new Date().toLocaleDateString('pt-BR'),
@@ -140,7 +150,7 @@ export default function PaymentsPage() {
                         Registrar Pagamento
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                     <DialogTitle>Registrar Novo Pagamento</DialogTitle>
                     <DialogDescription>
@@ -153,49 +163,137 @@ export default function PaymentsPage() {
                             control={form.control}
                             name="client"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="flex flex-col">
                                 <FormLabel>Cliente</FormLabel>
-                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o cliente" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {clients.map((client) => (
-                                        <SelectItem key={client.id} value={client.name}>
-                                        {client.name}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                className={cn(
+                                                    "w-full justify-between",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value
+                                                    ? clients.find(
+                                                        (client) => client.value === field.value
+                                                    )?.label
+                                                    : "Selecione o cliente"}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[375px] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Buscar cliente..." />
+                                            <CommandList>
+                                                <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {clients.map((client) => (
+                                                        <CommandItem
+                                                            value={client.label}
+                                                            key={client.value}
+                                                            onSelect={() => {
+                                                                form.setValue("client", client.value)
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    client.value === field.value
+                                                                        ? "opacity-100"
+                                                                        : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {client.label}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                                 <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
+                         <FormField
                             control={form.control}
-                            name="service"
+                            name="services"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Serviço</FormLabel>
-                                 <Select onValueChange={(value) => {
-                                     field.onChange(value);
-                                     handleServiceChange(value);
-                                 }} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o serviço" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {services.map((service) => (
-                                        <SelectItem key={service.id} value={service.name}>
-                                        {service.name}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
+                                <FormLabel>Serviços</FormLabel>
+                                <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                    variant="outline"
+                                    className="w-full justify-start font-normal h-auto"
+                                    >
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {field.value.length > 0 ? (
+                                        field.value.map((serviceName) => (
+                                            <Badge
+                                            key={serviceName}
+                                            variant="secondary"
+                                            className="gap-1.5"
+                                            >
+                                            {serviceName}
+                                            <button
+                                                onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                field.onChange(
+                                                    field.value.filter((s) => s !== serviceName)
+                                                );
+                                                }}
+                                                className="rounded-full hover:bg-muted-foreground/20"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                            </Badge>
+                                        ))
+                                        ) : (
+                                        <span className="text-muted-foreground">Selecione os serviços</span>
+                                        )}
+                                    </div>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[375px] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Buscar serviço..." />
+                                        <CommandList>
+                                            <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
+                                            <CommandGroup>
+                                                {serviceOptions.map((option) => {
+                                                    const isSelected = field.value.includes(option.name);
+                                                    return(
+                                                        <CommandItem
+                                                            key={option.id}
+                                                            onSelect={() => {
+                                                                if (isSelected) {
+                                                                    field.onChange(field.value.filter(s => s !== option.name));
+                                                                } else {
+                                                                    field.onChange([...field.value, option.name]);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className={cn(
+                                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                                isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                                                            )}>
+                                                                <Check className={cn("h-4 w-4")} />
+                                                            </div>
+                                                            <span>{option.name}</span>
+                                                        </CommandItem>
+                                                    )}
+                                                )}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                                </Popover>
                                 <FormMessage />
                                 </FormItem>
                             )}
@@ -205,7 +303,7 @@ export default function PaymentsPage() {
                             name="amount"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Valor</FormLabel>
+                                <FormLabel>Valor Total</FormLabel>
                                 <FormControl>
                                     <Input type="number" step="0.01" placeholder="R$ 0,00" {...field} />
                                 </FormControl>
@@ -258,7 +356,7 @@ export default function PaymentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Serviço</TableHead>
+                  <TableHead>Serviço(s)</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Forma de Pagamento</TableHead>
@@ -298,6 +396,13 @@ export default function PaymentsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                 {payments.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                            Nenhum pagamento registrado.
+                        </TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
