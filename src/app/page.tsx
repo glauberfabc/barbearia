@@ -48,7 +48,7 @@ export default function Home() {
             <h1 className="font-headline text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl">
               Gerencie sua barbearia com <span className="text-primary">facilidade</span>.
             </h1>
-            <p className="mt-4 max-w-2xl text-lg text-primary-foreground/80 md:text-xl">
+            <p className="mt-4 max-w-2xl text-lg text-white md:text-xl">
               Tudo o que você precisa para agendar clientes, gerenciar sua equipe e crescer seu negócio. Simples, moderno e poderoso.
             </p>
             <div className="mt-8 flex gap-4">
