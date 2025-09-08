@@ -6,6 +6,7 @@ import {
   BarChart2,
   Calendar,
   Home,
+  Package,
   Scissors,
   Settings,
   Users,
@@ -41,6 +42,7 @@ const navItems = [
   { href: '/dashboard/schedule', icon: Calendar, label: 'Agenda' },
   { href: '/dashboard/barbers', icon: Users, label: 'Barbeiros' },
   { href: '/dashboard/services', icon: Scissors, label: 'Serviços' },
+  { href: '/dashboard/products', icon: Package, label: 'Produtos' },
   { href: '/dashboard/analytics', icon: BarChart2, label: 'Análises' },
   { href: '/dashboard/settings', icon: Settings, label: 'Configurações' },
 ];
