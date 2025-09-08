@@ -71,7 +71,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
+                <Link href={item.href} passHref legacyBehavior>
                   <SidebarMenuButton
                     as="a"
                     isActive={pathname === item.href}
@@ -118,7 +118,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
+                <DropdownMenuItem>Editar Perfil</DropdownMenuItem>
                 <DropdownMenuItem>Assinatura</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
