@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,6 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -41,6 +43,16 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+  } from "@/components/ui/alert-dialog"
+import {
   Form,
   FormControl,
   FormField,
@@ -49,11 +61,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from '@/components/ui/select';
 
 const barberSchema = z.object({
   name: z.string().min(1, { message: "O nome é obrigatório." }),
   email: z.string().email({ message: "Por favor, insira um email válido." }),
   phone: z.string().min(1, { message: "O telefone é obrigatório." }),
+  status: z.enum(['Ativo', 'Férias', 'Inativo']),
 });
 
 type BarberFormValues = z.infer<typeof barberSchema>;
@@ -75,7 +95,10 @@ const initialBarbers: Barber[] = [
 
 export default function BarbersPage() {
   const [barbers, setBarbers] = React.useState<Barber[]>(initialBarbers);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [selectedBarber, setSelectedBarber] = React.useState<Barber | null>(null);
 
   const form = useForm<BarberFormValues>({
     resolver: zodResolver(barberSchema),
@@ -83,25 +106,59 @@ export default function BarbersPage() {
       name: '',
       email: '',
       phone: '',
+      status: 'Ativo',
     },
   });
 
-  const onSubmit = (data: BarberFormValues) => {
+  React.useEffect(() => {
+    if (selectedBarber) {
+      form.reset(selectedBarber);
+    } else {
+      form.reset({ name: '', email: '', phone: '', status: 'Ativo' });
+    }
+  }, [selectedBarber, form]);
+
+  const handleAddSubmit = (data: BarberFormValues) => {
     const newBarber: Barber = {
       id: Math.max(...barbers.map(b => b.id), 0) + 1,
       ...data,
-      status: 'Ativo',
     };
     setBarbers([...barbers, newBarber]);
     form.reset();
-    setIsDialogOpen(false);
+    setIsAddDialogOpen(false);
+  };
+  
+  const handleEditSubmit = (data: BarberFormValues) => {
+    if (selectedBarber) {
+      setBarbers(barbers.map(b => b.id === selectedBarber.id ? { ...b, ...data } : b));
+    }
+    setIsEditDialogOpen(false);
+    setSelectedBarber(null);
+  };
+
+  const handleDeleteBarber = () => {
+    if (selectedBarber) {
+      setBarbers(barbers.filter(b => b.id !== selectedBarber.id));
+    }
+    setIsDeleteDialogOpen(false);
+    setSelectedBarber(null);
+  };
+
+  const openEditDialog = (barber: Barber) => {
+    setSelectedBarber(barber);
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (barber: Barber) => {
+    setSelectedBarber(barber);
+    setIsDeleteDialogOpen(true);
   };
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Barbeiros</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={(isOpen) => { setIsAddDialogOpen(isOpen); if (!isOpen) form.reset(); }}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -116,7 +173,7 @@ export default function BarbersPage() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -202,7 +259,7 @@ export default function BarbersPage() {
                   </TableCell>
                   <TableCell>{barber.phone}</TableCell>
                   <TableCell>
-                    <Badge variant={barber.status === 'Ativo' ? 'default' : 'outline'}>
+                    <Badge variant={barber.status === 'Ativo' ? 'default' : barber.status === 'Férias' ? 'secondary' : 'outline'}>
                       {barber.status}
                     </Badge>
                   </TableCell>
@@ -216,9 +273,16 @@ export default function BarbersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Ver Agenda</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Excluir</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => openEditDialog(barber)}>
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                           <Link href="/dashboard/schedule">Ver Agenda</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(barber)}>
+                          Excluir
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -228,6 +292,106 @@ export default function BarbersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Barber Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => { setIsEditDialogOpen(isOpen); if (!isOpen) setSelectedBarber(null); }}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Editar Barbeiro</DialogTitle>
+              <DialogDescription>
+                Atualize os dados do profissional.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleEditSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome Completo</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do barbeiro" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="email@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                       <FormControl>
+                        <Input placeholder="(99) 99999-9999" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Ativo">Ativo</SelectItem>
+                          <SelectItem value="Férias">Férias</SelectItem>
+                          <SelectItem value="Inativo">Inativo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="button" variant="outline">Cancelar</Button>
+                  </DialogClose>
+                  <Button type="submit">Salvar Alterações</Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Essa ação não pode ser desfeita. Isso irá remover permanentemente o barbeiro
+                    dos seus registros.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setSelectedBarber(null)}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteBarber}>Confirmar</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }
