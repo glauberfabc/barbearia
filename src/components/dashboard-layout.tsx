@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -71,20 +72,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref legacyBehavior>
-                  <SidebarMenuButton
-                    as="a"
-                    isActive={pathname === item.href}
-                    tooltip={item.label}
-                    className={cn(
-                      "justify-start",
-                      pathname === item.href && "font-bold"
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
+                <SidebarMenuButton
+                  as={Link}
+                  href={item.href}
+                  isActive={pathname === item.href}
+                  tooltip={item.label}
+                  className={cn(
+                    "justify-start",
+                    pathname === item.href && "font-bold"
+                  )}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
