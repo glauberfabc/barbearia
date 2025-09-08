@@ -12,6 +12,7 @@ import {
   Users,
   CreditCard,
   BookUser,
+  Contact,
 } from 'lucide-react';
 
 import {
@@ -45,6 +46,7 @@ const navItems = [
   { href: '/dashboard/barbers', icon: Users, label: 'Barbeiros' },
   { href: '/dashboard/services', icon: Scissors, label: 'Serviços' },
   { href: '/dashboard/products', icon: Package, label: 'Produtos' },
+  { href: '/dashboard/clients', icon: Contact, label: 'Clientes' },
   { href: '/dashboard/payments', icon: CreditCard, label: 'Pagamentos' },
   { href: '/dashboard/debts', icon: BookUser, label: 'Fiados' },
   { href: '/dashboard/analytics', icon: BarChart2, label: 'Análises' },

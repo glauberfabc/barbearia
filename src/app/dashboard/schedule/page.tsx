@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/form"
 
 const appointmentSchema = z.object({
+  clientPhone: z.string().optional(),
   client: z.string().min(1, { message: "O nome do cliente é obrigatório." }),
   service: z.string().min(1, { message: "Selecione um serviço." }),
   barber: z.string().min(1, { message: "Selecione um barbeiro." }),
@@ -82,6 +83,7 @@ export default function SchedulePage() {
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
+      clientPhone: '',
       client: '',
       service: '',
       barber: '',
@@ -91,7 +93,10 @@ export default function SchedulePage() {
 
   const onSubmit = (data: AppointmentFormValues) => {
     const newAppointment: Appointment = {
-      ...data,
+      client: data.client,
+      service: data.service,
+      barber: data.barber,
+      time: data.time,
       status: 'Confirmado',
     };
     const sortedAppointments = [...appointments, newAppointment].sort((a, b) =>
@@ -124,10 +129,23 @@ export default function SchedulePage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
+                  name="clientPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone do Cliente (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(99) 99999-9999" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="client"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cliente</FormLabel>
+                      <FormLabel>Nome do Cliente</FormLabel>
                       <FormControl>
                         <Input placeholder="Nome do Cliente" {...field} />
                       </FormControl>
