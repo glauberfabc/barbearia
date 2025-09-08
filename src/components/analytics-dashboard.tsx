@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { useFlow } from '@genkit-ai/next/client';
+import { useState, useTransition } from 'react';
+import { runFlow } from '@genkit-ai/next/client';
 import type { PredictSchedulingOutput } from '@/ai/flows/predictive-scheduling';
+import { predictScheduling } from '@/ai/flows/predictive-scheduling';
 import {
   Card,
   CardContent,
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, BarChart2, PieChart as PieChartIcon, Clock } from 'lucide-react';
+import { Loader2, Wand2, BarChart2, PieChart as PieChartIcon, Clock, Scissors, Users } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer, Pie, PieChart, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
@@ -63,14 +64,16 @@ const pieChartConfig = {
 export function AnalyticsDashboard() {
   const [historicalData, setHistoricalData] = useState(mockHistoricalData);
   const [prediction, setPrediction] = useState<PredictSchedulingOutput | null>(null);
-  const [predictSchedulingFlow, { loading }] = useFlow('predictSchedulingFlow');
+  const [isPending, startTransition] = useTransition();
 
-  const handleAnalysis = async () => {
-    setPrediction(null);
-    const result = await predictSchedulingFlow({ historicalBookingData: historicalData });
-    if (result) {
-      setPrediction(result);
-    }
+  const handleAnalysis = () => {
+    startTransition(async () => {
+        setPrediction(null);
+        const result = await runFlow(predictScheduling, { historicalBookingData: historicalData });
+        if (result) {
+            setPrediction(result);
+        }
+    });
   };
 
   return (
@@ -101,8 +104,8 @@ export function AnalyticsDashboard() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleAnalysis} disabled={loading}>
-            {loading ? (
+          <Button onClick={handleAnalysis} disabled={isPending}>
+            {isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Wand2 className="mr-2 h-4 w-4" />
@@ -112,7 +115,7 @@ export function AnalyticsDashboard() {
         </CardFooter>
       </Card>
 
-      {loading && (
+      {isPending && (
         <div className="flex items-center justify-center rounded-lg border border-dashed p-12">
             <Loader2 className="mr-4 h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground">Analisando dados e gerando insights...</p>
