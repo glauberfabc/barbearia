@@ -63,7 +63,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 items-start justify-center">
             <Card className="flex flex-col transform transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl border-primary border-2">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">Plano BarberFlow</CardTitle>
+                <CardTitle className="text-2xl font-bold">BarberFlow Completo</CardTitle>
                 <CardDescription>A solução completa para gerenciar e crescer seu negócio.</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-6">
@@ -82,7 +82,7 @@ export default function PricingPage() {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full" size="lg">
-                  <Link href="/dashboard">Começar com BarberFlow</Link>
+                  <Link href="/dashboard">Começar com BarberFlow Completo</Link>
                 </Button>
               </CardFooter>
             </Card>
