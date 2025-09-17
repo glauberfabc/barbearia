@@ -53,7 +53,7 @@ export default function Home() {
             </p>
             <div className="mt-8 flex gap-4">
               <Button asChild size="lg">
-                <Link href="/dashboard">Comece Agora (Grátis)</Link>
+                <Link href="/dashboard">Demo</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
                 <Link href="#features">Saiba Mais</Link>
