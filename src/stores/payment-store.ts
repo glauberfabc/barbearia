@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 type PaymentState = {
+  client: string;
   services: string[];
   amount: number;
 };
@@ -16,3 +17,5 @@ export const usePaymentStore = create<PaymentStore>((set) => ({
   setInitialPayment: (payment) => set({ initialPayment: payment }),
   clearInitialPayment: () => set({ initialPayment: null }),
 }));
+
+    

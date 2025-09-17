@@ -91,6 +91,10 @@ const clients = [
     { value: 'Pedro Almeida', label: 'Pedro Almeida' },
     { value: 'Ricardo Gomes', label: 'Ricardo Gomes' },
     { value: 'Felipe Melo', label: 'Felipe Melo' },
+    { value: 'João Silva', label: 'João Silva' },
+    { value: 'Lucas Oliveira', label: 'Lucas Oliveira' },
+    { value: 'Fernanda Lima', label: 'Fernanda Lima' },
+    { value: 'Ricardo Souza', label: 'Ricardo Souza' },
 ];
 
 const serviceOptions = [
@@ -105,6 +109,7 @@ const serviceOptions = [
     { id: '9', name: 'Cerveja Artesanal', price: 15.00 },
     { id: '10', name: 'Refrigerante', price: 5.00 },
     { id: '11', name: 'Shampoo para Barba', price: 40.00 },
+    { id: '12', name: 'Hidratação', price: 60.00 },
 ];
   
 export default function PaymentsPage() {
@@ -127,7 +132,7 @@ export default function PaymentsPage() {
     React.useEffect(() => {
         if (initialPayment) {
             form.reset({
-                client: '',
+                client: initialPayment.client || '',
                 services: initialPayment.services || [],
                 amount: initialPayment.amount || 0,
                 method: 'Dinheiro'
@@ -508,3 +513,5 @@ export default function PaymentsPage() {
       </div>
     );
   }
+
+    

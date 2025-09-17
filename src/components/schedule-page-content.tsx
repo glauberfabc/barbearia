@@ -5,7 +5,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { usePaymentStore } from '@/stores/payment-store';
 
 
 const appointmentSchema = z.object({
@@ -73,12 +74,12 @@ const barbers = [
 ];
 
 const services = [
-    { id: '1', name: 'Corte Degradê', duration: 45 },
-    { id: '2', name: 'Corte Simples', duration: 30 },
-    { id: '3', name: 'Barba Terapia', duration: 40 },
-    { id: '4', name: 'Barba e Cabelo', duration: 75 },
-    { id: '5', name: 'Penteado', duration: 50 },
-    { id: '6', name: 'Hidratação', duration: 60 },
+    { id: '1', name: 'Corte Degradê', duration: 45, price: 45.00 },
+    { id: '2', name: 'Corte Simples', duration: 30, price: 35.00 },
+    { id: '3', name: 'Barba Terapia', duration: 40, price: 40.00 },
+    { id: '4', name: 'Barba e Cabelo', duration: 75, price: 75.00 },
+    { id: '5', name: 'Penteado', duration: 50, price: 50.00 },
+    { id: '6', name: 'Hidratação', duration: 60, price: 60.00 },
 ];
 
 const timeSlots = Array.from({ length: (20 - 8) * 2 }, (_, i) => {
@@ -102,6 +103,8 @@ export function SchedulePageContent() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [appointments, setAppointments] = React.useState<Appointment[]>(initialAppointments);
   const [selectedSlot, setSelectedSlot] = React.useState<{barber: string, time: string} | null>(null);
+  const router = useRouter();
+  const { setInitialPayment } = usePaymentStore();
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -147,6 +150,21 @@ export function SchedulePageContent() {
     setSelectedSlot(null);
   };
   
+  const handleAppointmentClick = (appointment: Appointment) => {
+    const serviceNames = appointment.service.split(', ');
+    const amount = serviceNames.reduce((acc, currentService) => {
+        const service = services.find(s => s.name === currentService);
+        return acc + (service ? service.price : 0);
+    }, 0);
+
+    setInitialPayment({
+        client: appointment.client,
+        services: serviceNames,
+        amount: amount,
+    });
+    router.push('/dashboard/payments');
+  };
+
   const getAppointmentForSlot = (barberName: string, time: string) => {
     return appointments.find(apt => apt.barber === barberName && apt.time <= time && time < addMinutes(apt.time, apt.duration));
   }
@@ -392,7 +410,7 @@ export function SchedulePageContent() {
                                                     key={time} 
                                                     className={cn("border-b border-r p-2 overflow-hidden relative cursor-pointer", getStatusColor(appointment.status))}
                                                     style={{ gridRow: `${timeIndex + 1} / span ${durationInSlots}`}}
-                                                    onClick={() => console.log('View appointment details')}
+                                                    onClick={() => handleAppointmentClick(appointment)}
                                                 >
                                                     <p className="font-semibold text-sm truncate">{appointment.client}</p>
                                                     <p className="text-xs text-muted-foreground truncate">{appointment.service}</p>
@@ -424,3 +442,5 @@ export function SchedulePageContent() {
     </div>
   );
 }
+
+    
