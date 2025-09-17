@@ -19,6 +19,7 @@ const customFeatures = [
     "Domínio próprio (suabarbearia.com)",
     "Funcionalidades sob medida",
     "Design exclusivo para sua marca",
+    "Automação com WhatsApp",
     "Suporte prioritário"
   ];
 
