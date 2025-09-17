@@ -40,6 +40,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -105,6 +106,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <SidebarInset className="flex flex-col">
         <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-4 border-b bg-background px-4 sm:px-6">
           <div className="flex items-center gap-4">
+            <Badge variant="destructive">Versão demonstração, as alterações não são salvas.</Badge>
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
