@@ -56,7 +56,7 @@ export default function Home() {
                 <Link href="/dashboard">Demo</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href="#features">Saiba Mais</Link>
+                <Link href="/pricing">Saiba Mais</Link>
               </Button>
             </div>
           </div>
