@@ -35,7 +35,7 @@ export default function Home() {
       <main className="flex-1">
         <section className="relative h-[80vh] min-h-[600px] w-full">
           <Image
-            src="https://picsum.photos/1920/1080"
+            src="https://i.postimg.cc/FzJZb87C/man-with-beard-sits-chair-with-sign-that-says-he-has-beard-it.jpg"
             alt="Barbearia estilosa"
             data-ai-hint="stylish barbershop"
             fill
