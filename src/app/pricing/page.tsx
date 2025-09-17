@@ -40,7 +40,7 @@ export default function PricingPage() {
           <div className="flex flex-1 items-center justify-end space-x-4">
             <ThemeToggle />
             <Button asChild variant="outline">
-              <Link href="/dashboard">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
             <Button asChild>
               <Link href="/dashboard">Comece Agora</Link>
