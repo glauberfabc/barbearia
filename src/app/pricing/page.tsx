@@ -69,7 +69,7 @@ export default function PricingPage() {
               <CardContent className="flex-grow space-y-6">
                 <div className="text-center">
                   <span className="text-4xl font-bold">R$99</span>
-                  <span className="text-muted-foreground">/mês</span>
+                  <p className="text-muted-foreground">Pagamento único</p>
                 </div>
                 <ul className="space-y-3">
                   {barberFlowFeatures.map((feature) => (
