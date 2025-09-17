@@ -173,166 +173,166 @@ export function SchedulePageContent() {
                   Novo Agendamento
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md flex flex-col">
                 <DialogHeader>
-                <DialogTitle>Novo Agendamento</DialogTitle>
-                <DialogDescription>
-                    Preencha os detalhes abaixo para criar um novo agendamento.
-                </DialogDescription>
+                  <DialogTitle>Novo Agendamento</DialogTitle>
+                  <DialogDescription>
+                      Preencha os detalhes abaixo para criar um novo agendamento.
+                  </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <ScrollArea className="h-auto max-h-[70vh] p-4">
-                    <div className="space-y-4">
-                      <FormField
-                      control={form.control}
-                      name="client"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>Nome do Cliente</FormLabel>
-                          <FormControl>
-                              <Input placeholder="Nome do Cliente" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                          </FormItem>
-                      )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="barber"
-                          render={({ field }) => (
-                              <FormItem>
-                              <FormLabel>Barbeiro</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                  <SelectTrigger>
-                                      <SelectValue placeholder="Selecione um barbeiro" />
-                                  </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                  {barbers.map((barber) => (
-                                      <SelectItem key={barber.id} value={barber.name}>
-                                      {barber.name}
-                                      </SelectItem>
-                                  ))}
-                                  </SelectContent>
-                              </Select>
-                              <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="services"
-                          render={({ field }) => (
-                              <FormItem>
-                              <FormLabel>Serviços</FormLabel>
-                              <Popover>
-                              <PopoverTrigger asChild>
-                                  <Button
-                                  variant="outline"
-                                  className="w-full justify-start font-normal h-auto min-h-10"
-                                  >
-                                  <div className="flex flex-wrap items-center gap-2">
-                                      {field.value.length > 0 ? (
-                                      field.value.map((serviceName) => (
-                                          <Badge
-                                          key={serviceName}
-                                          variant="secondary"
-                                          className="gap-1.5"
-                                          >
-                                          {serviceName}
-                                          <button
-                                              onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              field.onChange(
-                                                  field.value.filter((s) => s !== serviceName)
-                                              );
-                                              }}
-                                              className="rounded-full hover:bg-muted-foreground/20"
-                                          >
-                                              <X className="h-3 w-3" />
-                                          </button>
-                                          </Badge>
-                                      ))
-                                      ) : (
-                                      <span className="text-muted-foreground">Selecione os serviços</span>
-                                      )}
-                                  </div>
-                                  </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                  <Command>
-                                      <CommandInput placeholder="Buscar serviço..." />
-                                      <CommandList>
-                                          <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
-                                          <CommandGroup>
-                                              {services.map((option) => {
-                                                  const isSelected = field.value.includes(option.name);
-                                                  return(
-                                                      <CommandItem
-                                                          key={option.id}
-                                                          onSelect={() => {
-                                                              if (isSelected) {
-                                                                  field.onChange(field.value.filter(s => s !== option.name));
-                                                              } else {
-                                                                  field.onChange([...field.value, option.name]);
-                                                              }
-                                                          }}
-                                                      >
-                                                          <div className={cn(
-                                                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                              isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
-                                                          )}>
-                                                              <Check className={cn("h-4 w-4")} />
-                                                          </div>
-                                                          <span>{option.name}</span>
-                                                      </CommandItem>
-                                                  )}
-                                              )}
-                                          </CommandGroup>
-                                      </CommandList>
-                                  </Command>
-                              </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="time"
-                          render={({ field }) => (
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="flex-grow overflow-hidden flex flex-col">
+                    <ScrollArea className="flex-grow pr-6 -mr-6">
+                      <div className="space-y-4">
+                        <FormField
+                        control={form.control}
+                        name="client"
+                        render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Horário</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                  <SelectTrigger>
-                                      <SelectValue placeholder="Selecione um horário" />
-                                  </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                  {timeSlots.map((slot) => (
-                                     <SelectItem key={slot} value={slot} disabled={isSlotOccupied(form.getValues('barber'), slot)}>
-                                        {slot}
-                                     </SelectItem>
-                                  ))}
-                                  </SelectContent>
-                              </Select>
-                              <FormMessage />
+                            <FormLabel>Nome do Cliente</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Nome do Cliente" {...field} />
+                            </FormControl>
+                            <FormMessage />
                             </FormItem>
-                          )}
-                      />
-                    </div>
-                  </ScrollArea>
-                  <DialogFooter className="pt-4">
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">Cancelar</Button>
-                    </DialogClose>
-                    <Button type="submit">Salvar Agendamento</Button>
-                  </DialogFooter>
-                </form>
+                        )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="barber"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Barbeiro</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione um barbeiro" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {barbers.map((barber) => (
+                                        <SelectItem key={barber.id} value={barber.name}>
+                                        {barber.name}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="services"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Serviços</FormLabel>
+                                <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                    variant="outline"
+                                    className="w-full justify-start font-normal h-auto min-h-10"
+                                    >
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {field.value.length > 0 ? (
+                                        field.value.map((serviceName) => (
+                                            <Badge
+                                            key={serviceName}
+                                            variant="secondary"
+                                            className="gap-1.5"
+                                            >
+                                            {serviceName}
+                                            <button
+                                                onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                field.onChange(
+                                                    field.value.filter((s) => s !== serviceName)
+                                                );
+                                                }}
+                                                className="rounded-full hover:bg-muted-foreground/20"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                            </Badge>
+                                        ))
+                                        ) : (
+                                        <span className="text-muted-foreground">Selecione os serviços</span>
+                                        )}
+                                    </div>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Buscar serviço..." />
+                                        <CommandList>
+                                            <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
+                                            <CommandGroup>
+                                                {services.map((option) => {
+                                                    const isSelected = field.value.includes(option.name);
+                                                    return(
+                                                        <CommandItem
+                                                            key={option.id}
+                                                            onSelect={() => {
+                                                                if (isSelected) {
+                                                                    field.onChange(field.value.filter(s => s !== option.name));
+                                                                } else {
+                                                                    field.onChange([...field.value, option.name]);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className={cn(
+                                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                                isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                                                            )}>
+                                                                <Check className={cn("h-4 w-4")} />
+                                                            </div>
+                                                            <span>{option.name}</span>
+                                                        </CommandItem>
+                                                    )}
+                                                )}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="time"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Horário</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione um horário" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {timeSlots.map((slot) => (
+                                       <SelectItem key={slot} value={slot} disabled={isSlotOccupied(form.getValues('barber'), slot)}>
+                                          {slot}
+                                       </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                        />
+                      </div>
+                    </ScrollArea>
+                    <DialogFooter className="flex-shrink-0 pt-4">
+                      <DialogClose asChild>
+                          <Button type="button" variant="outline">Cancelar</Button>
+                      </DialogClose>
+                      <Button type="submit">Salvar Agendamento</Button>
+                    </DialogFooter>
+                  </form>
                 </Form>
             </DialogContent>
         </Dialog>
