@@ -35,7 +35,7 @@ export default function PricingPage() {
           <nav className="hidden flex-1 items-center space-x-6 text-sm font-medium md:flex">
             <Link href="/#features">Funcionalidades</Link>
             <Link href="/pricing">Preços</Link>
-            <Link href="/#contact">Contato</Link>
+            <Link href="/contact">Contato</Link>
           </nav>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <ThemeToggle />
@@ -108,7 +108,7 @@ export default function PricingPage() {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full" variant="outline" size="lg">
-                  <Link href="/#contact">Consultar Preços</Link>
+                  <Link href="/contact">Consultar Preços</Link>
                 </Button>
               </CardFooter>
             </Card>

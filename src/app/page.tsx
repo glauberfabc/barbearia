@@ -18,7 +18,7 @@ export default function Home() {
           <nav className="hidden flex-1 items-center space-x-6 text-sm font-medium md:flex">
             <Link href="#features">Funcionalidades</Link>
             <Link href="/pricing">Preços</Link>
-            <Link href="#contact">Contato</Link>
+            <Link href="/contact">Contato</Link>
           </nav>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <ThemeToggle />
@@ -26,7 +26,7 @@ export default function Home() {
               <Link href="/dashboard">Login</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">Comece Agora</Link>
+              <Link href="/dashboard">Demo</Link>
             </Button>
           </div>
         </div>
