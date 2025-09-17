@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Check, ChevronsUpDown, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -33,10 +33,13 @@ import {
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+
 
 const appointmentSchema = z.object({
   client: z.string().min(1, { message: "O nome do cliente é obrigatório." }),
-  service: z.string().min(1, { message: "Selecione um serviço." }),
+  services: z.array(z.string()).min(1, { message: "Selecione pelo menos um serviço." }),
   barber: z.string().min(1, { message: "Selecione um barbeiro." }),
   time: z.string().min(1, { message: "O horário é obrigatório." }),
 });
@@ -104,7 +107,7 @@ export function SchedulePageContent() {
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       client: '',
-      service: '',
+      services: [],
       barber: '',
       time: '',
     },
@@ -116,20 +119,24 @@ export function SchedulePageContent() {
         barber,
         time,
         client: '',
-        service: ''
+        services: []
     });
     setIsDialogOpen(true);
   }
 
   const onSubmit = (data: AppointmentFormValues) => {
-    const serviceDetails = services.find(s => s.name === data.service);
+    const totalDuration = data.services.reduce((acc, serviceName) => {
+        const serviceDetails = services.find(s => s.name === serviceName);
+        return acc + (serviceDetails?.duration || 0);
+    }, 0);
+
     const newAppointment: Appointment = {
       client: data.client,
-      service: data.service,
+      service: data.services.join(', '),
       barber: data.barber,
       time: data.time,
       status: 'Confirmado',
-      duration: serviceDetails?.duration || 30,
+      duration: totalDuration,
     };
     const sortedAppointments = [...appointments, newAppointment].sort((a, b) =>
         a.time.localeCompare(b.time)
@@ -215,28 +222,83 @@ export function SchedulePageContent() {
                           )}
                       />
                       <FormField
-                      control={form.control}
-                      name="service"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>Serviço</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                              <SelectTrigger>
-                                  <SelectValue placeholder="Selecione um serviço" />
-                              </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                              {services.map((service) => (
-                                  <SelectItem key={service.id} value={service.name}>
-                                  {service.name}
-                                  </SelectItem>
-                              ))}
-                              </SelectContent>
-                          </Select>
-                          <FormMessage />
-                          </FormItem>
-                      )}
+                          control={form.control}
+                          name="services"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Serviços</FormLabel>
+                              <Popover>
+                              <PopoverTrigger asChild>
+                                  <Button
+                                  variant="outline"
+                                  className="w-full justify-start font-normal h-auto min-h-10"
+                                  >
+                                  <div className="flex flex-wrap items-center gap-2">
+                                      {field.value.length > 0 ? (
+                                      field.value.map((serviceName) => (
+                                          <Badge
+                                          key={serviceName}
+                                          variant="secondary"
+                                          className="gap-1.5"
+                                          >
+                                          {serviceName}
+                                          <button
+                                              onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              field.onChange(
+                                                  field.value.filter((s) => s !== serviceName)
+                                              );
+                                              }}
+                                              className="rounded-full hover:bg-muted-foreground/20"
+                                          >
+                                              <X className="h-3 w-3" />
+                                          </button>
+                                          </Badge>
+                                      ))
+                                      ) : (
+                                      <span className="text-muted-foreground">Selecione os serviços</span>
+                                      )}
+                                  </div>
+                                  </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                  <Command>
+                                      <CommandInput placeholder="Buscar serviço..." />
+                                      <CommandList>
+                                          <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
+                                          <CommandGroup>
+                                              {services.map((option) => {
+                                                  const isSelected = field.value.includes(option.name);
+                                                  return(
+                                                      <CommandItem
+                                                          key={option.id}
+                                                          onSelect={() => {
+                                                              if (isSelected) {
+                                                                  field.onChange(field.value.filter(s => s !== option.name));
+                                                              } else {
+                                                                  field.onChange([...field.value, option.name]);
+                                                              }
+                                                          }}
+                                                      >
+                                                          <div className={cn(
+                                                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                              isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                                                          )}>
+                                                              <Check className={cn("h-4 w-4")} />
+                                                          </div>
+                                                          <span>{option.name}</span>
+                                                      </CommandItem>
+                                                  )}
+                                              )}
+                                          </CommandGroup>
+                                      </CommandList>
+                                  </Command>
+                              </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                              </FormItem>
+                          )}
                       />
                       <FormField
                           control={form.control}
