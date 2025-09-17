@@ -16,6 +16,12 @@ export default {
       },
     },
     extend: {
+      gridTemplateColumns: {
+        'subgrid': 'subgrid',
+      },
+      gridTemplateRows: {
+        'subgrid': 'subgrid',
+      },
       fontFamily: {
         body: ['Poppins', 'sans-serif'],
         headline: ['Poppins', 'sans-serif'],

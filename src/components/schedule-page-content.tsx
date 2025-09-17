@@ -7,10 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Filter } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,13 +30,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
+import { Calendar } from '@/components/ui/calendar';
 
 const appointmentSchema = z.object({
-  clientPhone: z.string().optional(),
   client: z.string().min(1, { message: "O nome do cliente é obrigatório." }),
   service: z.string().min(1, { message: "Selecione um serviço." }),
   barber: z.string().min(1, { message: "Selecione um barbeiro." }),
@@ -52,16 +49,17 @@ interface Appointment {
     service: string;
     barber: string;
     status: 'Confirmado' | 'Finalizado' | 'Cancelado' | 'Aguardando';
+    duration: number; // in minutes
 }
 
 const initialAppointments: Appointment[] = [
-    { time: '09:00', client: 'João Silva', service: 'Corte Degradê', barber: 'Renato Garcia', status: 'Confirmado' },
-    { time: '10:00', client: 'Mariana Costa', service: 'Barba Terapia', barber: 'Marcos Andrade', status: 'Confirmado' },
-    { time: '10:30', client: 'Pedro Almeida', service: 'Corte Simples', barber: 'Renato Garcia', status: 'Finalizado' },
-    { time: '11:00', client: 'Ana Beatriz', service: 'Penteado', barber: 'Júlia Martins', status: 'Confirmado' },
-    { time: '12:00', client: 'Lucas Oliveira', service: 'Barba e Cabelo', barber: 'Marcos Andrade', status: 'Aguardando' },
-    { time: '14:00', client: 'Fernanda Lima', service: 'Corte Feminino', barber: 'Júlia Martins', status: 'Confirmado' },
-    { time: '15:00', client: 'Ricardo Souza', service: 'Corte Degradê', barber: 'Renato Garcia', status: 'Cancelado' },
+    { time: '09:00', client: 'João Silva', service: 'Corte Degradê', barber: 'Renato Garcia', status: 'Confirmado', duration: 45 },
+    { time: '10:00', client: 'Mariana Costa', service: 'Barba Terapia', barber: 'Marcos Andrade', status: 'Confirmado', duration: 40 },
+    { time: '10:30', client: 'Pedro Almeida', service: 'Corte Simples', barber: 'Renato Garcia', status: 'Finalizado', duration: 30 },
+    { time: '11:00', client: 'Ana Beatriz', service: 'Penteado', barber: 'Júlia Martins', status: 'Confirmado', duration: 50 },
+    { time: '12:00', client: 'Lucas Oliveira', service: 'Barba e Cabelo', barber: 'Marcos Andrade', status: 'Aguardando', duration: 75 },
+    { time: '14:00', client: 'Fernanda Lima', service: 'Hidratação', barber: 'Júlia Martins', status: 'Confirmado', duration: 60 },
+    { time: '15:00', client: 'Ricardo Souza', service: 'Corte Degradê', barber: 'Renato Garcia', status: 'Cancelado', duration: 45 },
 ];
 
 const barbers = [
@@ -84,43 +82,54 @@ const timeSlots = Array.from({ length: (20 - 8) * 2 }, (_, i) => {
     const hour = 8 + Math.floor(i / 2);
     const minute = i % 2 === 0 ? '00' : '30';
     return `${hour.toString().padStart(2, '0')}:${minute}`;
-  });
+});
+
+const getStatusColor = (status: Appointment['status']) => {
+    switch (status) {
+        case 'Confirmado': return 'bg-blue-500/20 border-blue-500';
+        case 'Finalizado': return 'bg-green-500/20 border-green-500';
+        case 'Cancelado': return 'bg-red-500/20 border-red-500 line-through';
+        case 'Aguardando': return 'bg-yellow-500/20 border-yellow-500';
+        default: return 'bg-muted';
+    }
+}
 
 export function SchedulePageContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const barberFilterParam = searchParams.get('barber');
-
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [appointments, setAppointments] = React.useState<Appointment[]>(initialAppointments);
-  const [barberFilter, setBarberFilter] = React.useState(barberFilterParam || 'todos');
+  const [selectedSlot, setSelectedSlot] = React.useState<{barber: string, time: string} | null>(null);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
-      clientPhone: '',
       client: '',
       service: '',
       barber: '',
       time: '',
     },
   });
-  
-  React.useEffect(() => {
-    if (barberFilterParam) {
-      setBarberFilter(barberFilterParam);
-    }
-  }, [barberFilterParam]);
 
+  const openNewAppointmentDialog = (barber: string, time: string) => {
+    setSelectedSlot({ barber, time });
+    form.reset({
+        barber,
+        time,
+        client: '',
+        service: ''
+    });
+    setIsDialogOpen(true);
+  }
 
   const onSubmit = (data: AppointmentFormValues) => {
+    const serviceDetails = services.find(s => s.name === data.service);
     const newAppointment: Appointment = {
       client: data.client,
       service: data.service,
       barber: data.barber,
       time: data.time,
       status: 'Confirmado',
+      duration: serviceDetails?.duration || 30,
     };
     const sortedAppointments = [...appointments, newAppointment].sort((a, b) =>
         a.time.localeCompare(b.time)
@@ -128,140 +137,75 @@ export function SchedulePageContent() {
     setAppointments(sortedAppointments);
     form.reset();
     setIsDialogOpen(false);
+    setSelectedSlot(null);
   };
   
-  const selectedBarberForNewAppointment = form.watch('barber');
-
-  const occupiedTimeSlots = React.useMemo(() => {
-    if (!selectedBarberForNewAppointment) {
-      return [];
-    }
-    return appointments
-      .filter((apt) => apt.barber === selectedBarberForNewAppointment)
-      .map(apt => apt.time);
-  }, [appointments, selectedBarberForNewAppointment]);
-
-  const filteredAppointments = React.useMemo(() => {
-    if (barberFilter === 'todos') {
-      return appointments;
-    }
-    return appointments.filter(apt => apt.barber === barberFilter);
-  }, [appointments, barberFilter]);
-
-  const handleFilterChange = (barberName: string) => {
-    setBarberFilter(barberName);
-    const params = new URLSearchParams(searchParams.toString());
-    if (barberName === 'todos') {
-      params.delete('barber');
-    } else {
-      params.set('barber', barberName);
-    }
-    router.push(`/dashboard/schedule?${params.toString()}`);
+  const getAppointmentForSlot = (barberName: string, time: string) => {
+    return appointments.find(apt => apt.barber === barberName && apt.time <= time && time < addMinutes(apt.time, apt.duration));
   }
+  
+  const isSlotOccupied = (barberName: string, time: string) => {
+    return appointments.some(apt => apt.barber === barberName && apt.time <= time && time < addMinutes(apt.time, apt.duration));
+  }
+  
+  const addMinutes = (time: string, minutes: number) => {
+    const [hours, mins] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, mins + minutes, 0, 0);
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agenda</h1>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <Select value={barberFilter} onValueChange={handleFilterChange}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filtrar por barbeiro" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="todos">Todos os Barbeiros</SelectItem>
-                    {barbers.map((barber) => (
-                        <SelectItem key={barber.id} value={barber.name}>
-                        {barber.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button className="w-full sm:w-auto">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Novo Agendamento
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                    <DialogTitle>Novo Agendamento</DialogTitle>
-                    <DialogDescription>
-                        Preencha os detalhes abaixo para criar um novo agendamento.
-                    </DialogDescription>
-                    </DialogHeader>
-                    <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <ScrollArea className="h-auto max-h-[70vh] p-4">
-                        <div className="space-y-4">
-                          <FormField
+        <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { setIsDialogOpen(isOpen); if (!isOpen) setSelectedSlot(null); }}>
+            <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Novo Agendamento
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                <DialogTitle>Novo Agendamento</DialogTitle>
+                <DialogDescription>
+                    Preencha os detalhes abaixo para criar um novo agendamento.
+                </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <ScrollArea className="h-auto max-h-[70vh] p-4">
+                    <div className="space-y-4">
+                      <FormField
+                      control={form.control}
+                      name="client"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Nome do Cliente</FormLabel>
+                          <FormControl>
+                              <Input placeholder="Nome do Cliente" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <FormField
                           control={form.control}
-                          name="clientPhone"
+                          name="barber"
                           render={({ field }) => (
                               <FormItem>
-                              <FormLabel>Telefone do Cliente (Opcional)</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="(99) 99999-9999" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                              </FormItem>
-                          )}
-                          />
-                          <FormField
-                          control={form.control}
-                          name="client"
-                          render={({ field }) => (
-                              <FormItem>
-                              <FormLabel>Nome do Cliente</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="Nome do Cliente" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                              </FormItem>
-                          )}
-                          />
-                          <FormField
-                              control={form.control}
-                              name="barber"
-                              render={({ field }) => (
-                                  <FormItem>
-                                  <FormLabel>Barbeiro</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                      <FormControl>
-                                      <SelectTrigger>
-                                          <SelectValue placeholder="Selecione um barbeiro" />
-                                      </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                      {barbers.map((barber) => (
-                                          <SelectItem key={barber.id} value={barber.name}>
-                                          {barber.name}
-                                          </SelectItem>
-                                      ))}
-                                      </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                  </FormItem>
-                              )}
-                          />
-                          <FormField
-                          control={form.control}
-                          name="service"
-                          render={({ field }) => (
-                              <FormItem>
-                              <FormLabel>Serviço</FormLabel>
-                              <Select onValuechange={field.onChange} defaultValue={field.value}>
+                              <FormLabel>Barbeiro</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                   <SelectTrigger>
-                                      <SelectValue placeholder="Selecione um serviço" />
+                                      <SelectValue placeholder="Selecione um barbeiro" />
                                   </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                  {services.map((service) => (
-                                      <SelectItem key={service.id} value={service.name}>
-                                      {service.name}
+                                  {barbers.map((barber) => (
+                                      <SelectItem key={barber.id} value={barber.name}>
+                                      {barber.name}
                                       </SelectItem>
                                   ))}
                                   </SelectContent>
@@ -269,67 +213,73 @@ export function SchedulePageContent() {
                               <FormMessage />
                               </FormItem>
                           )}
-                          />
-                          <FormField
-                              control={form.control}
-                              name="time"
-                              render={({ field }) => (
-                                  <FormItem>
-                                  <FormLabel>Horário</FormLabel>
+                      />
+                      <FormField
+                      control={form.control}
+                      name="service"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Serviço</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                              <SelectTrigger>
+                                  <SelectValue placeholder="Selecione um serviço" />
+                              </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                              {services.map((service) => (
+                                  <SelectItem key={service.id} value={service.name}>
+                                  {service.name}
+                                  </SelectItem>
+                              ))}
+                              </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="time"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Horário</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
-                                      <RadioGroup
-                                          onValueChange={field.onChange}
-                                          defaultValue={field.value}
-                                          className="grid grid-cols-3 sm:grid-cols-4 gap-2"
-                                          disabled={!selectedBarberForNewAppointment}
-                                      >
-                                          {!selectedBarberForNewAppointment && <p className="col-span-full text-sm text-muted-foreground">Selecione um barbeiro primeiro.</p>}
-                                          {selectedBarberForNewAppointment && timeSlots.map((slot) => {
-                                              const isOccupied = occupiedTimeSlots.includes(slot);
-                                              return (
-                                                  <FormItem key={slot}>
-                                                      <FormControl>
-                                                          <RadioGroupItem value={slot} id={slot} className="peer sr-only" disabled={isOccupied} />
-                                                      </FormControl>
-                                                      <FormLabel
-                                                          htmlFor={slot}
-                                                          className={cn(
-                                                              "flex h-9 items-center justify-center rounded-md border text-sm font-normal",
-                                                              "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-                                                              !isOccupied && "cursor-pointer peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground",
-                                                              isOccupied ? "bg-red-200 text-destructive-foreground dark:bg-red-800 cursor-not-allowed" : "bg-green-200 dark:bg-green-800/50 hover:bg-green-300 dark:hover:bg-green-700"
-                                                          )}
-                                                      >
-                                                          {slot}
-                                                      </FormLabel>
-                                                  </FormItem>
-                                              )
-                                          })}
-                                      </RadioGroup>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="Selecione um horário" />
+                                  </SelectTrigger>
                                   </FormControl>
-                                  <FormMessage />
-                                  </FormItem>
-                              )}
-                          />
-                        </div>
-                      </ScrollArea>
-                      <DialogFooter className="pt-4">
-                        <DialogClose asChild>
-                            <Button type="button" variant="outline">Cancelar</Button>
-                        </DialogClose>
-                        <Button type="submit">Salvar Agendamento</Button>
-                      </DialogFooter>
-                    </form>
-                    </Form>
-                </DialogContent>
-            </Dialog>
-        </div>
+                                  <SelectContent>
+                                  {timeSlots.map((slot) => (
+                                     <SelectItem key={slot} value={slot} disabled={isSlotOccupied(form.getValues('barber'), slot)}>
+                                        {slot}
+                                     </SelectItem>
+                                  ))}
+                                  </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                      />
+                    </div>
+                  </ScrollArea>
+                  <DialogFooter className="pt-4">
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">Cancelar</Button>
+                    </DialogClose>
+                    <Button type="submit">Salvar Agendamento</Button>
+                  </DialogFooter>
+                </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1 flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 h-full">
+         <Card className="lg:col-span-1 flex flex-col">
           <CardHeader>
-            <CardTitle>Selecione uma data</CardTitle>
+            <CardTitle>{date ? date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'Selecione uma data'}</CardTitle>
           </CardHeader>
           <CardContent className="flex-grow flex items-center justify-center">
             <Calendar
@@ -341,41 +291,71 @@ export function SchedulePageContent() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-1 flex flex-col h-full">
           <CardHeader>
-            <CardTitle>Agendamentos do dia</CardTitle>
-            <CardDescription>
-              {date ? date.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Selecione uma data'}
+            <CardTitle>Agenda do Dia</CardTitle>
+             <CardDescription>
+                {date ? date.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Selecione uma data'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {filteredAppointments.map((apt, index) => (
-              <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-lg border p-4">
-                <div className="font-bold text-primary text-lg">{apt.time}</div>
-                <div className="flex-1">
-                  <p className="font-semibold">{apt.client}</p>
-                  <p className="text-sm text-muted-foreground">{apt.service} com {apt.barber}</p>
+          <CardContent className="flex-grow overflow-hidden">
+            <ScrollArea className="h-full">
+                <div className="grid grid-cols-[60px_repeat(auto-fit,_minmax(150px,_1fr))] h-full">
+                    {/* Time Column */}
+                    <div className="col-start-1 col-end-2 row-start-1 sticky top-0 bg-background z-10">
+                        <div className="h-12 border-b flex items-center justify-center font-semibold">Horas</div>
+                        {timeSlots.map(time => (
+                            <div key={time} className="h-20 flex items-center justify-center border-b border-r text-sm text-muted-foreground">
+                                {time}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Barbers Columns */}
+                    <div className="col-start-2 col-end-[-1] row-start-1 grid grid-cols-subgrid">
+                        {barbers.map((barber, barberIndex) => (
+                            <div key={barber.id} className={cn("grid grid-rows-[auto_repeat(24,_80px)] col-start-", barberIndex + 1, "col-end-", barberIndex + 2)}>
+                                <div className="h-12 border-b flex items-center justify-center font-semibold text-center sticky top-0 bg-background z-10 border-r">
+                                    {barber.name}
+                                </div>
+                                <div className="row-start-2 row-end-[-1] col-start-1 col-end-2 grid grid-rows-subgrid">
+                                    {timeSlots.map((time, timeIndex) => {
+                                        const appointment = getAppointmentForSlot(barber.name, time);
+                                        const isFirstSlot = appointment && appointment.time === time;
+
+                                        if (appointment && isFirstSlot) {
+                                            const durationInSlots = Math.ceil(appointment.duration / 30);
+                                            return (
+                                                <div 
+                                                    key={time} 
+                                                    className={cn("border-b border-r p-2 overflow-hidden relative cursor-pointer", getStatusColor(appointment.status))}
+                                                    style={{ gridRow: `${timeIndex + 1} / span ${durationInSlots}`}}
+                                                    onClick={() => console.log('View appointment details')}
+                                                >
+                                                    <p className="font-semibold text-sm truncate">{appointment.client}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">{appointment.service}</p>
+                                                </div>
+                                            )
+                                        }
+
+                                        if (isSlotOccupied(barber.name, time)) {
+                                            return null;
+                                        }
+                                        
+                                        return (
+                                            <div 
+                                                key={time} 
+                                                className="border-b border-r cursor-pointer hover:bg-muted/50"
+                                                onClick={() => openNewAppointmentDialog(barber.name, time)}
+                                            />
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div>
-                  <Badge
-                    variant={
-                      apt.status === 'Confirmado' ? 'default'
-                      : apt.status === 'Finalizado' ? 'secondary'
-                      : apt.status === 'Cancelado' ? 'destructive'
-                      : 'outline'
-                    }
-                    className="capitalize"
-                  >
-                    {apt.status.toLowerCase()}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-             {filteredAppointments.length === 0 && (
-                <div className="text-center text-muted-foreground py-8">
-                    Nenhum agendamento para este dia.
-                </div>
-            )}
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>
