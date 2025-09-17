@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
-import { Check } from 'lucide-react';
+import { Check, Menu } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+
 
 const barberFlowFeatures = [
   "Agendamento Online 24/7",
@@ -37,14 +39,48 @@ export default function PricingPage() {
             <Link href="/pricing">Preços</Link>
             <Link href="/contact">Contato</Link>
           </nav>
-          <div className="flex flex-1 items-center justify-end space-x-4">
+          <div className="hidden flex-1 items-center justify-end space-x-4 md:flex">
             <ThemeToggle />
             <Button asChild variant="outline">
               <Link href="/login">Login</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">Comece Agora</Link>
+              <Link href="/dashboard">Demo</Link>
             </Button>
+          </div>
+          <div className="flex flex-1 items-center justify-end md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Abrir menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <nav className="flex flex-col gap-6 text-lg font-medium mt-8">
+                    <SheetClose asChild>
+                        <Link href="/#features">Funcionalidades</Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/pricing">Preços</Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/contact">Contato</Link>
+                    </SheetClose>
+                </nav>
+                <div className="absolute bottom-4 right-4 left-4 flex flex-col gap-2">
+                    <Button asChild variant="outline" size="lg">
+                        <Link href="/login">Login</Link>
+                    </Button>
+                    <Button asChild size="lg">
+                        <Link href="/dashboard">Demo</Link>
+                    </Button>
+                    <div className="mt-4 flex justify-center">
+                        <ThemeToggle />
+                    </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
