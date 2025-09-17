@@ -108,8 +108,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <SidebarInset className="flex flex-col">
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:justify-end sm:px-6">
             <SidebarTrigger className="sm:hidden" />
-          <div className="flex items-center gap-4">
-            <Badge variant="destructive">Versão demonstração, as alterações não são salvas.</Badge>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Badge variant="destructive" className="hidden sm:inline-flex">Versão demonstração, as alterações não são salvas.</Badge>
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -135,7 +135,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <Badge variant="destructive" className="sm:hidden mb-4 inline-flex">Versão demonstração, as alterações não são salvas.</Badge>
+            {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

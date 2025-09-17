@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -165,16 +166,16 @@ export default function ProductsPage() {
     
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Produtos</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Produtos</h1>
           <Dialog open={isAddDialogOpen} onOpenChange={(isOpen) => { setIsAddDialogOpen(isOpen); if (!isOpen) form.reset(); }}>
                 <DialogTrigger asChild>
-                    <Button>
+                    <Button className="w-full sm:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Adicionar Produto
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                     <DialogTitle>Adicionar Novo Produto</DialogTitle>
                     <DialogDescription>
@@ -240,66 +241,73 @@ export default function ProductsPage() {
             <CardDescription>Gerencie o estoque de produtos da sua barbearia.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Estoque</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Ações</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.price}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                            product.status === 'Em estoque' ? 'default'
-                            : product.status === 'Estoque baixo' ? 'secondary'
-                            : 'destructive'
-                        }
-                      >
-                        {product.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => openEditDialog(product)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleRegisterSale(product)}>Registrar Venda</DropdownMenuItem>
-                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(product)}>
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <div className="w-full overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead className="hidden sm:table-cell">Estoque</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Ações</span>
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">
+                        <div className="font-bold">{product.name}</div>
+                        <div className="text-sm text-muted-foreground sm:hidden">
+                            Estoque: {product.stock}
+                        </div>
+                      </TableCell>
+                      <TableCell>{product.price}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{product.stock}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={
+                              product.status === 'Em estoque' ? 'default'
+                              : product.status === 'Estoque baixo' ? 'secondary'
+                              : 'destructive'
+                          }
+                        >
+                          {product.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => openEditDialog(product)}>
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleRegisterSale(product)}>Registrar Venda</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(product)}>
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         {/* Edit Product Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => { setIsEditDialogOpen(isOpen); if (!isOpen) setSelectedProduct(null); }}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                 <DialogTitle>Editar Produto</DialogTitle>
                 <DialogDescription>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -16,6 +17,7 @@ import {
   import { useToast } from "@/hooks/use-toast"
   import { Switch } from '@/components/ui/switch';
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+  import { ScrollArea } from '@/components/ui/scroll-area';
 
   const weekDays = [
     { id: 'segunda', label: 'Segunda-feira' },
@@ -85,7 +87,7 @@ import {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Configurações da Barbearia</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Configurações</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -97,120 +99,122 @@ import {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
-                        <Label htmlFor="logo">Logo da Barbearia</Label>
-                        <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-md border flex items-center justify-center bg-muted">
-                            {logoPreview ? (
-                                <img src={logoPreview} alt="Preview do Logo" className="h-full w-full object-cover rounded-md" />
-                            ) : (
-                                <Upload className="w-8 h-8 text-muted-foreground" />
-                            )}
-                            </div>
-                            <Input id="logo" type="file" className="max-w-sm" onChange={handleLogoChange} accept="image/png, image/jpeg" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">Recomendado: 200x200px, PNG ou JPG.</p>
+                          <Label htmlFor="logo">Logo da Barbearia</Label>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                              <div className="w-24 h-24 rounded-md border flex items-center justify-center bg-muted shrink-0">
+                              {logoPreview ? (
+                                  <img src={logoPreview} alt="Preview do Logo" className="h-full w-full object-cover rounded-md" />
+                              ) : (
+                                  <Upload className="w-8 h-8 text-muted-foreground" />
+                              )}
+                              </div>
+                              <Input id="logo" type="file" className="max-w-sm" onChange={handleLogoChange} accept="image/png, image/jpeg" />
+                          </div>
+                          <p className="text-sm text-muted-foreground">Recomendado: 200x200px, PNG ou JPG.</p>
                         </div>
             
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="primary-color">Cor Primária</Label>
-                            <div className="flex items-center gap-2">
-                            <Input 
-                                id="primary-color-picker" 
-                                type="color" 
-                                value={primaryColor}
-                                onChange={(e) => setPrimaryColor(e.target.value)}
-                                className="w-14 p-1"
-                            />
-                            <Input 
-                                id="primary-color-text"
-                                type="text" 
-                                value={primaryColor}
-                                onChange={(e) => setPrimaryColor(e.target.value)}
-                                className="max-w-xs" 
-                            />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Usada em botões principais e links.</p>
-                        </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="primary-color">Cor Primária</Label>
+                              <div className="flex items-center gap-2">
+                              <Input 
+                                  id="primary-color-picker" 
+                                  type="color" 
+                                  value={primaryColor}
+                                  onChange={(e) => setPrimaryColor(e.target.value)}
+                                  className="w-14 p-1"
+                              />
+                              <Input 
+                                  id="primary-color-text"
+                                  type="text" 
+                                  value={primaryColor}
+                                  onChange={(e) => setPrimaryColor(e.target.value)}
+                                  className="max-w-xs" 
+                              />
+                              </div>
+                              <p className="text-sm text-muted-foreground">Usada em botões principais e links.</p>
+                          </div>
             
-                        <div className="space-y-2">
-                            <Label htmlFor="accent-color">Cor de Destaque</Label>
-                            <div className="flex items-center gap-2">
-                            <Input 
-                                id="accent-color-picker" 
-                                type="color" 
-                                value={accentColor}
-                                onChange={(e) => setAccentColor(e.target.value)}
-                                className="w-14 p-1"
-                                />
-                            <Input 
-                                id="accent-color-text"
-                                type="text" 
-                                value={accentColor}
-                                onChange={(e) => setAccentColor(e.target.value)}
-                                className="max-w-xs" 
-                                />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Usada para detalhes e chamadas de ação.</p>
-                        </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="accent-color">Cor de Destaque</Label>
+                              <div className="flex items-center gap-2">
+                              <Input 
+                                  id="accent-color-picker" 
+                                  type="color" 
+                                  value={accentColor}
+                                  onChange={(e) => setAccentColor(e.target.value)}
+                                  className="w-14 p-1"
+                                  />
+                              <Input 
+                                  id="accent-color-text"
+                                  type="text" 
+                                  value={accentColor}
+                                  onChange={(e) => setAccentColor(e.target.value)}
+                                  className="max-w-xs" 
+                                  />
+                              </div>
+                              <p className="text-sm text-muted-foreground">Usada para detalhes e chamadas de ação.</p>
+                          </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
             <div className="lg:col-span-1">
-                <Card>
+                <Card className="flex flex-col h-full">
                     <CardHeader>
                         <CardTitle>Horário de Funcionamento</CardTitle>
                         <CardDescription>Defina os dias e horários que a barbearia está aberta.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                         <div className="space-y-3">
-                            {weekDays.map(day => (
-                                <div key={day.id} className="space-y-3">
-                                    <div className="flex items-center justify-between rounded-lg border p-3">
-                                        <Label htmlFor={day.id} className="font-medium">{day.label}</Label>
-                                        <Switch
-                                            id={day.id}
-                                            checked={operatingHours[day.id]?.isOpen}
-                                            onCheckedChange={(checked) => handleOperatingHoursChange(day.id, 'isOpen', checked)}
-                                        />
-                                    </div>
-                                    {operatingHours[day.id]?.isOpen && (
-                                        <div className="flex items-center gap-4 pl-3">
-                                            <div className="flex-1 space-y-1">
-                                                <Label htmlFor={`opening-time-${day.id}`} className="text-xs">Abertura</Label>
-                                                <Select 
-                                                    value={operatingHours[day.id]?.openingTime} 
-                                                    onValueChange={(value) => handleOperatingHoursChange(day.id, 'openingTime', value)}
-                                                >
-                                                    <SelectTrigger id={`opening-time-${day.id}`}>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {timeSlots.map(time => <SelectItem key={`open-${day.id}-${time}`} value={time}>{time}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="flex-1 space-y-1">
-                                                <Label htmlFor={`closing-time-${day.id}`} className="text-xs">Fechamento</Label>
-                                                <Select 
-                                                    value={operatingHours[day.id]?.closingTime} 
-                                                    onValueChange={(value) => handleOperatingHoursChange(day.id, 'closingTime', value)}
-                                                >
-                                                    <SelectTrigger id={`closing-time-${day.id}`}>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {timeSlots.map(time => <SelectItem key={`close-${day.id}-${time}`} value={time}>{time}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
+                    <CardContent className="flex-grow">
+                         <ScrollArea className="h-full max-h-[450px] pr-4">
+                            <div className="space-y-3">
+                                {weekDays.map(day => (
+                                    <div key={day.id} className="space-y-3">
+                                        <div className="flex items-center justify-between rounded-lg border p-3">
+                                            <Label htmlFor={day.id} className="font-medium">{day.label}</Label>
+                                            <Switch
+                                                id={day.id}
+                                                checked={operatingHours[day.id]?.isOpen}
+                                                onCheckedChange={(checked) => handleOperatingHoursChange(day.id, 'isOpen', checked)}
+                                            />
                                         </div>
-                                    )}
-                                </div>
-                            ))}
-                         </div>
+                                        {operatingHours[day.id]?.isOpen && (
+                                            <div className="flex items-center gap-2 sm:gap-4 pl-3">
+                                                <div className="flex-1 space-y-1">
+                                                    <Label htmlFor={`opening-time-${day.id}`} className="text-xs">Abertura</Label>
+                                                    <Select 
+                                                        value={operatingHours[day.id]?.openingTime} 
+                                                        onValueChange={(value) => handleOperatingHoursChange(day.id, 'openingTime', value)}
+                                                    >
+                                                        <SelectTrigger id={`opening-time-${day.id}`}>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {timeSlots.map(time => <SelectItem key={`open-${day.id}-${time}`} value={time}>{time}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="flex-1 space-y-1">
+                                                    <Label htmlFor={`closing-time-${day.id}`} className="text-xs">Fechamento</Label>
+                                                    <Select 
+                                                        value={operatingHours[day.id]?.closingTime} 
+                                                        onValueChange={(value) => handleOperatingHoursChange(day.id, 'closingTime', value)}
+                                                    >
+                                                        <SelectTrigger id={`closing-time-${day.id}`}>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {timeSlots.map(time => <SelectItem key={`close-${day.id}-${time}`} value={time}>{time}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                         </ScrollArea>
                     </CardContent>
                 </Card>
             </div>

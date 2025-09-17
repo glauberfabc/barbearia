@@ -18,7 +18,6 @@ import {
     CardDescription
   } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle2 } from 'lucide-react';
 
 interface Debt {
@@ -46,7 +45,7 @@ export default function DebtsPage() {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Controle de Fiados</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Controle de Fiados</h1>
         </div>
   
         <Card>
@@ -55,42 +54,48 @@ export default function DebtsPage() {
             <CardDescription>Gerencie os clientes que optaram por pagar depois.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Valor Pendente</TableHead>
-                  <TableHead>Data do Serviço</TableHead>
-                  <TableHead>
-                    Ações
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {debts.map((debt) => (
-                  <TableRow key={debt.id}>
-                    <TableCell className="font-medium">{debt.client}</TableCell>
-                    <TableCell>{debt.service}</TableCell>
-                    <TableCell>{debt.amount}</TableCell>
-                    <TableCell>{debt.date}</TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" onClick={() => handleSettleDebt(debt.id)}>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Marcar como Pago
-                      </Button>
-                    </TableCell>
+            <div className="w-full overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead className="hidden md:table-cell">Data</TableHead>
+                    <TableHead>
+                      Ações
+                    </TableHead>
                   </TableRow>
-                ))}
-                 {debts.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
-                            Nenhum cliente com pagamento pendente.
-                        </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {debts.map((debt) => (
+                    <TableRow key={debt.id}>
+                      <TableCell className="font-medium">
+                        <div className="font-bold">{debt.client}</div>
+                        <div className="text-sm text-muted-foreground md:hidden">{debt.date}</div>
+                      </TableCell>
+                      <TableCell>{debt.service}</TableCell>
+                      <TableCell>{debt.amount}</TableCell>
+                      <TableCell className="hidden md:table-cell">{debt.date}</TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm" onClick={() => handleSettleDebt(debt.id)}>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          <span className="hidden sm:inline">Marcar como Pago</span>
+                          <span className="inline sm:hidden">Pagar</span>
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                  {debts.length === 0 && (
+                      <TableRow>
+                          <TableCell colSpan={5} className="h-24 text-center">
+                              Nenhum cliente com pagamento pendente.
+                          </TableCell>
+                      </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

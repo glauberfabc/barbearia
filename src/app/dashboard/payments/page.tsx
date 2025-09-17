@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -54,7 +55,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { usePaymentStore } from '@/stores/payment-store';
-
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const paymentSchema = z.object({
     client: z.string().min(1, { message: "Selecione um cliente." }),
@@ -176,11 +177,11 @@ export default function PaymentsPage() {
 
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Pagamentos</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Pagamentos</h1>
           <Dialog open={isAddDialogOpen} onOpenChange={onAddDialogChange}>
                 <DialogTrigger asChild>
-                    <Button>
+                    <Button className="w-full sm:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Registrar Pagamento
                     </Button>
@@ -194,186 +195,190 @@ export default function PaymentsPage() {
                     </DialogHeader>
                     <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="client"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                <FormLabel>Cliente</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant="outline"
-                                                role="combobox"
-                                                className={cn(
-                                                    "w-full justify-between",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value
-                                                    ? clients.find(
-                                                        (client) => client.value === field.value
-                                                    )?.label
-                                                    : "Selecione o cliente"}
-                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[375px] p-0">
-                                        <Command>
-                                            <CommandInput placeholder="Buscar cliente..." />
-                                            <CommandList>
-                                                <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-                                                <CommandGroup>
-                                                    {clients.map((client) => (
-                                                        <CommandItem
-                                                            value={client.label}
-                                                            key={client.value}
-                                                            onSelect={() => {
-                                                                form.setValue("client", client.value)
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    client.value === field.value
-                                                                        ? "opacity-100"
-                                                                        : "opacity-0"
-                                                                )}
-                                                            />
-                                                            {client.label}
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="services"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Serviços/Produtos</FormLabel>
-                                <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                    variant="outline"
-                                    className="w-full justify-start font-normal h-auto"
-                                    >
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {field.value.length > 0 ? (
-                                        field.value.map((serviceName) => (
-                                            <Badge
-                                            key={serviceName}
-                                            variant="secondary"
-                                            className="gap-1.5"
-                                            >
-                                            {serviceName}
-                                            <button
-                                                onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                field.onChange(
-                                                    field.value.filter((s) => s !== serviceName)
-                                                );
-                                                }}
-                                                className="rounded-full hover:bg-muted-foreground/20"
-                                            >
-                                                <X className="h-3 w-3" />
-                                            </button>
-                                            </Badge>
-                                        ))
-                                        ) : (
-                                        <span className="text-muted-foreground">Selecione os serviços/produtos</span>
-                                        )}
-                                    </div>
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[375px] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Buscar serviço ou produto..." />
-                                        <CommandList>
-                                            <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
-                                            <CommandGroup>
-                                                {serviceOptions.map((option) => {
-                                                    const isSelected = field.value.includes(option.name);
-                                                    return(
-                                                        <CommandItem
-                                                            key={option.id}
-                                                            onSelect={() => {
-                                                                if (isSelected) {
-                                                                    field.onChange(field.value.filter(s => s !== option.name));
-                                                                } else {
-                                                                    field.onChange([...field.value, option.name]);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <div className={cn(
-                                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                                isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
-                                                            )}>
-                                                                <Check className={cn("h-4 w-4")} />
-                                                            </div>
-                                                            <span>{option.name}</span>
-                                                        </CommandItem>
-                                                    )}
-                                                )}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="amount"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Valor Total</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.01" placeholder="R$ 0,00" {...field} readOnly className="bg-muted"/>
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="method"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Forma de Pagamento</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione a forma de pagamento" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                                        <SelectItem value="Cartão">Cartão</SelectItem>
-                                        <SelectItem value="Pix">Pix</SelectItem>
-                                        <SelectItem value="Fiado">Fiado (Anotar na conta)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <DialogFooter>
-                        <DialogClose asChild>
-                            <Button type="button" variant="outline">Cancelar</Button>
-                        </DialogClose>
-                        <Button type="submit">Salvar Pagamento</Button>
+                      <ScrollArea className="h-auto max-h-[70vh] p-4">
+                        <div className="space-y-4">
+                          <FormField
+                              control={form.control}
+                              name="client"
+                              render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                  <FormLabel>Cliente</FormLabel>
+                                  <Popover>
+                                      <PopoverTrigger asChild>
+                                          <FormControl>
+                                              <Button
+                                                  variant="outline"
+                                                  role="combobox"
+                                                  className={cn(
+                                                      "w-full justify-between",
+                                                      !field.value && "text-muted-foreground"
+                                                  )}
+                                              >
+                                                  {field.value
+                                                      ? clients.find(
+                                                          (client) => client.value === field.value
+                                                      )?.label
+                                                      : "Selecione o cliente"}
+                                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                              </Button>
+                                          </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                          <Command>
+                                              <CommandInput placeholder="Buscar cliente..." />
+                                              <CommandList>
+                                                  <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                                                  <CommandGroup>
+                                                      {clients.map((client) => (
+                                                          <CommandItem
+                                                              value={client.label}
+                                                              key={client.value}
+                                                              onSelect={() => {
+                                                                  form.setValue("client", client.value)
+                                                              }}
+                                                          >
+                                                              <Check
+                                                                  className={cn(
+                                                                      "mr-2 h-4 w-4",
+                                                                      client.value === field.value
+                                                                          ? "opacity-100"
+                                                                          : "opacity-0"
+                                                                  )}
+                                                              />
+                                                              {client.label}
+                                                          </CommandItem>
+                                                      ))}
+                                                  </CommandGroup>
+                                              </CommandList>
+                                          </Command>
+                                      </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="services"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Serviços/Produtos</FormLabel>
+                                  <Popover>
+                                  <PopoverTrigger asChild>
+                                      <Button
+                                      variant="outline"
+                                      className="w-full justify-start font-normal h-auto min-h-10"
+                                      >
+                                      <div className="flex flex-wrap items-center gap-2">
+                                          {field.value.length > 0 ? (
+                                          field.value.map((serviceName) => (
+                                              <Badge
+                                              key={serviceName}
+                                              variant="secondary"
+                                              className="gap-1.5"
+                                              >
+                                              {serviceName}
+                                              <button
+                                                  onClick={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  field.onChange(
+                                                      field.value.filter((s) => s !== serviceName)
+                                                  );
+                                                  }}
+                                                  className="rounded-full hover:bg-muted-foreground/20"
+                                              >
+                                                  <X className="h-3 w-3" />
+                                              </button>
+                                              </Badge>
+                                          ))
+                                          ) : (
+                                          <span className="text-muted-foreground">Selecione os serviços/produtos</span>
+                                          )}
+                                      </div>
+                                      </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                      <Command>
+                                          <CommandInput placeholder="Buscar serviço ou produto..." />
+                                          <CommandList>
+                                              <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
+                                              <CommandGroup>
+                                                  {serviceOptions.map((option) => {
+                                                      const isSelected = field.value.includes(option.name);
+                                                      return(
+                                                          <CommandItem
+                                                              key={option.id}
+                                                              onSelect={() => {
+                                                                  if (isSelected) {
+                                                                      field.onChange(field.value.filter(s => s !== option.name));
+                                                                  } else {
+                                                                      field.onChange([...field.value, option.name]);
+                                                                  }
+                                                              }}
+                                                          >
+                                                              <div className={cn(
+                                                                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                                  isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                                                              )}>
+                                                                  <Check className={cn("h-4 w-4")} />
+                                                              </div>
+                                                              <span>{option.name}</span>
+                                                          </CommandItem>
+                                                      )}
+                                                  )}
+                                              </CommandGroup>
+                                          </CommandList>
+                                      </Command>
+                                  </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="amount"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Valor Total</FormLabel>
+                                  <FormControl>
+                                      <Input type="number" step="0.01" placeholder="R$ 0,00" {...field} readOnly className="bg-muted"/>
+                                  </FormControl>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="method"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Forma de Pagamento</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Selecione a forma de pagamento" />
+                                      </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                          <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                                          <SelectItem value="Cartão">Cartão</SelectItem>
+                                          <SelectItem value="Pix">Pix</SelectItem>
+                                          <SelectItem value="Fiado">Fiado (Anotar na conta)</SelectItem>
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                        </div>
+                      </ScrollArea>
+                        <DialogFooter className="pt-4">
+                          <DialogClose asChild>
+                              <Button type="button" variant="outline">Cancelar</Button>
+                          </DialogClose>
+                          <Button type="submit">Salvar Pagamento</Button>
                         </DialogFooter>
                     </form>
                     </Form>
@@ -387,61 +392,66 @@ export default function PaymentsPage() {
             <CardDescription>Visualize todos os pagamentos registrados.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Serviço(s)</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Forma de Pagamento</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Ações</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{payment.client}</TableCell>
-                    <TableCell>{payment.service}</TableCell>
-                    <TableCell>{payment.amount}</TableCell>
-                    <TableCell>{payment.date}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={payment.method === 'Fiado' ? 'destructive' : 'default'}
-                      >
-                        {payment.method}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => openDetailsDialog(payment)}>
-                            Ver Detalhes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>Gerar Recibo</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <div className="w-full overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead className="hidden sm:table-cell">Serviço(s)</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead className="hidden md:table-cell">Data</TableHead>
+                    <TableHead className="hidden md:table-cell">Pagamento</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Ações</span>
+                    </TableHead>
                   </TableRow>
-                ))}
-                 {payments.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
-                            Nenhum pagamento registrado.
-                        </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">
+                        <div className="font-bold">{payment.client}</div>
+                        <div className="text-sm text-muted-foreground sm:hidden">{payment.service}</div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">{payment.service}</TableCell>
+                      <TableCell>{payment.amount}</TableCell>
+                      <TableCell className="hidden md:table-cell">{payment.date}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <Badge 
+                          variant={payment.method === 'Fiado' ? 'destructive' : 'default'}
+                        >
+                          {payment.method}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => openDetailsDialog(payment)}>
+                              Ver Detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Gerar Recibo</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                  {payments.length === 0 && (
+                      <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                              Nenhum pagamento registrado.
+                          </TableCell>
+                      </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 

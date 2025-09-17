@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useTransition } from 'react';
@@ -15,8 +16,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Wand2, BarChart2, PieChart as PieChartIcon, Clock, Scissors, Users } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer, Pie, PieChart, Cell } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer, Pie, PieChart, Cell, Legend } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegendContent } from '@/components/ui/chart';
 
 const mockHistoricalData = JSON.stringify(
   [
@@ -54,6 +55,9 @@ const pieChartData = [
     { service: "Corte Simples", value: 20, fill: "var(--color-corte-simples)" },
 ]
 const pieChartConfig = {
+    value: {
+        label: "Vendas"
+    },
     "corte-degrade": { label: "Corte Degradê", color: "hsl(var(--chart-1))" },
     "barba-cabelo": { label: "Barba e Cabelo", color: "hsl(var(--chart-2))" },
     "barba-terapia": { label: "Barba Terapia", color: "hsl(var(--chart-3))" },
@@ -80,7 +84,7 @@ export function AnalyticsDashboard() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
             <Wand2 className="h-6 w-6 text-primary" />
             Otimização com IA
           </CardTitle>
@@ -116,7 +120,7 @@ export function AnalyticsDashboard() {
       </Card>
 
       {isPending && (
-        <div className="flex items-center justify-center rounded-lg border border-dashed p-12">
+        <div className="flex items-center justify-center rounded-lg border border-dashed p-12 text-center">
             <Loader2 className="mr-4 h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground">Analisando dados e gerando insights...</p>
         </div>
@@ -126,7 +130,7 @@ export function AnalyticsDashboard() {
         <div className="grid gap-6 md:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /> Horários de Pico</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg"><Clock className="h-5 w-5 text-primary" /> Horários de Pico</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{prediction.peakHours}</p>
@@ -134,7 +138,7 @@ export function AnalyticsDashboard() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Scissors className="h-5 w-5 text-primary" /> Serviços Populares</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg"><Scissors className="h-5 w-5 text-primary" /> Serviços Populares</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{prediction.popularServices}</p>
@@ -142,7 +146,7 @@ export function AnalyticsDashboard() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Agenda Sugerida</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg"><Users className="h-5 w-5 text-primary" /> Agenda Sugerida</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{prediction.suggestedSchedule}</p>
@@ -180,7 +184,7 @@ export function AnalyticsDashboard() {
                 <CardDescription>Distribuição dos serviços mais populares.</CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-center">
-                 <ChartContainer config={pieChartConfig} className="min-h-[200px] w-full">
+                 <ChartContainer config={pieChartConfig} className="min-h-[250px] w-full">
                     <PieChart>
                          <ChartTooltip content={<ChartTooltipContent nameKey="service" />} />
                         <Pie data={pieChartData} dataKey="value" nameKey="service" innerRadius={50} outerRadius={80}>
@@ -188,6 +192,7 @@ export function AnalyticsDashboard() {
                                 <Cell key={`cell-${index}`} fill={entry.fill} />
                             ))}
                         </Pie>
+                        <ChartLegend content={<ChartLegendContent nameKey="service" />} />
                     </PieChart>
                 </ChartContainer>
             </CardContent>

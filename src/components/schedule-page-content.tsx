@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const appointmentSchema = z.object({
@@ -149,7 +150,7 @@ export function SchedulePageContent() {
 
   const handleFilterChange = (barberName: string) => {
     setBarberFilter(barberName);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     if (barberName === 'todos') {
       params.delete('barber');
     } else {
@@ -160,11 +161,11 @@ export function SchedulePageContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Agenda</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agenda</h1>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Select value={barberFilter} onValueChange={handleFilterChange}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Filtrar por barbeiro" />
                 </SelectTrigger>
@@ -179,9 +180,9 @@ export function SchedulePageContent() {
             </Select>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Novo Agendamento
+                    <Button className="w-full sm:w-auto">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Novo Agendamento
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
@@ -193,127 +194,131 @@ export function SchedulePageContent() {
                     </DialogHeader>
                     <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                        control={form.control}
-                        name="clientPhone"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Telefone do Cliente (Opcional)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="(99) 99999-9999" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name="client"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Nome do Cliente</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Nome do Cliente" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="barber"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Barbeiro</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione um barbeiro" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {barbers.map((barber) => (
-                                        <SelectItem key={barber.id} value={barber.name}>
-                                        {barber.name}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name="service"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Serviço</FormLabel>
-                            <Select onValuechange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione um serviço" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {services.map((service) => (
-                                    <SelectItem key={service.id} value={service.name}>
-                                    {service.name}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="time"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Horário</FormLabel>
-                                <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="grid grid-cols-4 gap-2"
-                                        disabled={!selectedBarberForNewAppointment}
-                                    >
-                                        {!selectedBarberForNewAppointment && <p className="col-span-4 text-sm text-muted-foreground">Selecione um barbeiro primeiro.</p>}
-                                        {selectedBarberForNewAppointment && timeSlots.map((slot) => {
-                                            const isOccupied = occupiedTimeSlots.includes(slot);
-                                            return (
-                                                <FormItem key={slot}>
-                                                    <FormControl>
-                                                        <RadioGroupItem value={slot} id={slot} className="peer sr-only" disabled={isOccupied} />
-                                                    </FormControl>
-                                                    <FormLabel
-                                                        htmlFor={slot}
-                                                        className={cn(
-                                                            "flex h-9 items-center justify-center rounded-md border text-sm font-normal",
-                                                            "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-                                                            !isOccupied && "cursor-pointer peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground",
-                                                            isOccupied ? "bg-red-200 text-destructive-foreground dark:bg-red-800" : "bg-green-200 dark:bg-green-800"
-                                                        )}
-                                                    >
-                                                        {slot}
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )
-                                        })}
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <DialogFooter>
+                      <ScrollArea className="h-auto max-h-[70vh] p-4">
+                        <div className="space-y-4">
+                          <FormField
+                          control={form.control}
+                          name="clientPhone"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Telefone do Cliente (Opcional)</FormLabel>
+                              <FormControl>
+                                  <Input placeholder="(99) 99999-9999" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                          <FormField
+                          control={form.control}
+                          name="client"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Nome do Cliente</FormLabel>
+                              <FormControl>
+                                  <Input placeholder="Nome do Cliente" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="barber"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Barbeiro</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Selecione um barbeiro" />
+                                      </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                      {barbers.map((barber) => (
+                                          <SelectItem key={barber.id} value={barber.name}>
+                                          {barber.name}
+                                          </SelectItem>
+                                      ))}
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                          control={form.control}
+                          name="service"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Serviço</FormLabel>
+                              <Select onValuechange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="Selecione um serviço" />
+                                  </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                  {services.map((service) => (
+                                      <SelectItem key={service.id} value={service.name}>
+                                      {service.name}
+                                      </SelectItem>
+                                  ))}
+                                  </SelectContent>
+                              </Select>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="time"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Horário</FormLabel>
+                                  <FormControl>
+                                      <RadioGroup
+                                          onValueChange={field.onChange}
+                                          defaultValue={field.value}
+                                          className="grid grid-cols-3 sm:grid-cols-4 gap-2"
+                                          disabled={!selectedBarberForNewAppointment}
+                                      >
+                                          {!selectedBarberForNewAppointment && <p className="col-span-full text-sm text-muted-foreground">Selecione um barbeiro primeiro.</p>}
+                                          {selectedBarberForNewAppointment && timeSlots.map((slot) => {
+                                              const isOccupied = occupiedTimeSlots.includes(slot);
+                                              return (
+                                                  <FormItem key={slot}>
+                                                      <FormControl>
+                                                          <RadioGroupItem value={slot} id={slot} className="peer sr-only" disabled={isOccupied} />
+                                                      </FormControl>
+                                                      <FormLabel
+                                                          htmlFor={slot}
+                                                          className={cn(
+                                                              "flex h-9 items-center justify-center rounded-md border text-sm font-normal",
+                                                              "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                                                              !isOccupied && "cursor-pointer peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground",
+                                                              isOccupied ? "bg-red-200 text-destructive-foreground dark:bg-red-800 cursor-not-allowed" : "bg-green-200 dark:bg-green-800/50 hover:bg-green-300 dark:hover:bg-green-700"
+                                                          )}
+                                                      >
+                                                          {slot}
+                                                      </FormLabel>
+                                                  </FormItem>
+                                              )
+                                          })}
+                                      </RadioGroup>
+                                  </FormControl>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                        </div>
+                      </ScrollArea>
+                      <DialogFooter className="pt-4">
                         <DialogClose asChild>
                             <Button type="button" variant="outline">Cancelar</Button>
                         </DialogClose>
                         <Button type="submit">Salvar Agendamento</Button>
-                        </DialogFooter>
+                      </DialogFooter>
                     </form>
                     </Form>
                 </DialogContent>
@@ -322,11 +327,11 @@ export function SchedulePageContent() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 flex flex-col">
           <CardHeader>
             <CardTitle>Selecione uma data</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow flex items-center justify-center">
             <Calendar
               mode="single"
               selected={date}
@@ -345,8 +350,8 @@ export function SchedulePageContent() {
           </CardHeader>
           <CardContent className="space-y-4">
             {filteredAppointments.map((apt, index) => (
-              <div key={index} className="flex items-center gap-4 rounded-lg border p-4">
-                <div className="font-bold text-primary">{apt.time}</div>
+              <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-lg border p-4">
+                <div className="font-bold text-primary text-lg">{apt.time}</div>
                 <div className="flex-1">
                   <p className="font-semibold">{apt.client}</p>
                   <p className="text-sm text-muted-foreground">{apt.service} com {apt.barber}</p>
@@ -377,5 +382,3 @@ export function SchedulePageContent() {
     </div>
   );
 }
-
-    

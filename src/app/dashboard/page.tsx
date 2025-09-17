@@ -1,3 +1,4 @@
+
 import {
     Card,
     CardContent,
@@ -34,7 +35,7 @@ import {
   export default function DashboardPage() {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
   
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {kpiData.map((kpi) => (
@@ -58,40 +59,45 @@ import {
               <CardDescription>Confira os últimos agendamentos do dia.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Barbeiro</TableHead>
-                    <TableHead>Horário</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentAppointments.map((apt, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{apt.client}</TableCell>
-                      <TableCell>{apt.service}</TableCell>
-                      <TableCell>{apt.barber}</TableCell>
-                      <TableCell>{apt.time}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            apt.status === 'Confirmado' ? 'default'
-                            : apt.status === 'Finalizado' ? 'secondary'
-                            : apt.status === 'Cancelado' ? 'destructive'
-                            : 'outline'
-                          }
-                          className="capitalize"
-                        >
-                          {apt.status.toLowerCase()}
-                        </Badge>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead className="hidden sm:table-cell">Serviço</TableHead>
+                      <TableHead className="hidden md:table-cell">Barbeiro</TableHead>
+                      <TableHead className="hidden sm:table-cell">Horário</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {recentAppointments.map((apt, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          <div className="font-semibold">{apt.client}</div>
+                          <div className="text-sm text-muted-foreground sm:hidden">{apt.service} - {apt.time}</div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">{apt.service}</TableCell>
+                        <TableCell className="hidden md:table-cell">{apt.barber}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{apt.time}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              apt.status === 'Confirmado' ? 'default'
+                              : apt.status === 'Finalizado' ? 'secondary'
+                              : apt.status === 'Cancelado' ? 'destructive'
+                              : 'outline'
+                            }
+                            className="capitalize"
+                          >
+                            {apt.status.toLowerCase()}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
   
@@ -104,28 +110,28 @@ import {
                 <div className="flex items-center justify-between">
                     <span>Renato</span>
                     <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '80%'}}></div></div>
+                        <div className="w-24 sm:w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '80%'}}></div></div>
                         <span className="text-sm font-medium">8/10</span>
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
                     <span>Marcos</span>
                     <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '100%'}}></div></div>
+                        <div className="w-24 sm:w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '100%'}}></div></div>
                         <span className="text-sm font-medium">10/10</span>
                     </div>
                 </div>
                  <div className="flex items-center justify-between">
                     <span>Júlia</span>
                     <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '50%'}}></div></div>
+                        <div className="w-24 sm:w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '50%'}}></div></div>
                         <span className="text-sm font-medium">5/10</span>
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
                     <span>Lucas</span>
                     <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '70%'}}></div></div>
+                        <div className="w-24 sm:w-32 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary" style={{width: '70%'}}></div></div>
                         <span className="text-sm font-medium">7/10</span>
                     </div>
                 </div>

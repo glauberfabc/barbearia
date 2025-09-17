@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -161,16 +162,16 @@ export default function BarbersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Barbeiros</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Barbeiros</h1>
         <Dialog open={isAddDialogOpen} onOpenChange={(isOpen) => { setIsAddDialogOpen(isOpen); if (!isOpen) form.reset(); }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Barbeiro
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Barbeiro</DialogTitle>
               <DialogDescription>
@@ -236,71 +237,74 @@ export default function BarbersPage() {
           <CardDescription>Gerencie os profissionais da sua equipe.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Profissional</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>
-                  <span className="sr-only">Ações</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {barbers.map((barber) => (
-                <TableRow key={barber.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={`https://picsum.photos/seed/${barber.id}/100`} />
-                        <AvatarFallback>{barber.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-bold">{barber.name}</div>
-                        <div className="text-sm text-muted-foreground">{barber.email}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{barber.phone}</TableCell>
-                  <TableCell>
-                    <Badge variant={barber.status === 'Ativo' ? 'default' : barber.status === 'Férias' ? 'secondary' : 'outline'}>
-                      {barber.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => openEditDialog(barber)}>
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleViewSchedule(barber.name)}>
-                           Ver Agenda
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(barber)}>
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="w-full overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Profissional</TableHead>
+                  <TableHead className="hidden md:table-cell">Contato</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {barbers.map((barber) => (
+                  <TableRow key={barber.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={`https://picsum.photos/seed/${barber.id}/100`} />
+                          <AvatarFallback>{barber.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <div className="font-bold">{barber.name}</div>
+                          <div className="text-sm text-muted-foreground md:hidden">{barber.phone}</div>
+                          <div className="text-sm text-muted-foreground hidden md:block">{barber.email}</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{barber.phone}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant={barber.status === 'Ativo' ? 'default' : barber.status === 'Férias' ? 'secondary' : 'outline'}>
+                        {barber.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => openEditDialog(barber)}>
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleViewSchedule(barber.name)}>
+                             Ver Agenda
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onSelect={() => openDeleteDialog(barber)}>
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* Edit Barber Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => { setIsEditDialogOpen(isOpen); if (!isOpen) setSelectedBarber(null); }}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Editar Barbeiro</DialogTitle>
               <DialogDescription>
