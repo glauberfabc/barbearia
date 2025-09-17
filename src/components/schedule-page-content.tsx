@@ -30,7 +30,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
+
 
 const appointmentSchema = z.object({
   clientPhone: z.string().optional(),
@@ -76,11 +79,11 @@ const services = [
     { id: '6', name: 'Hidratação', duration: 60 },
 ];
 
-const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = i + 8; // Barbershop opens at 8 AM
-    if (hour > 20) return null; // Closes after 8 PM
-    return [`${hour.toString().padStart(2, '0')}:00`, `${hour.toString().padStart(2, '0')}:30`];
-  }).flat().filter(Boolean) as string[];
+const timeSlots = Array.from({ length: (20 - 8) * 2 }, (_, i) => {
+    const hour = 8 + Math.floor(i / 2);
+    const minute = i % 2 === 0 ? '00' : '30';
+    return `${hour.toString().padStart(2, '0')}:${minute}`;
+  });
 
 export function SchedulePageContent() {
   const router = useRouter();
@@ -128,16 +131,13 @@ export function SchedulePageContent() {
   
   const selectedBarberForNewAppointment = form.watch('barber');
 
-  const availableTimeSlots = React.useMemo(() => {
+  const occupiedTimeSlots = React.useMemo(() => {
     if (!selectedBarberForNewAppointment) {
-      return timeSlots;
+      return [];
     }
-    const barberAppointments = appointments.filter(
-      (apt) => apt.barber === selectedBarberForNewAppointment
-    );
-    return timeSlots.filter(
-      (slot) => !barberAppointments.some((apt) => apt.time === slot)
-    );
+    return appointments
+      .filter((apt) => apt.barber === selectedBarberForNewAppointment)
+      .map(apt => apt.time);
   }, [appointments, selectedBarberForNewAppointment]);
 
   const filteredAppointments = React.useMemo(() => {
@@ -184,7 +184,7 @@ export function SchedulePageContent() {
                     Novo Agendamento
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                     <DialogTitle>Novo Agendamento</DialogTitle>
                     <DialogDescription>
@@ -268,28 +268,45 @@ export function SchedulePageContent() {
                         )}
                         />
                         <FormField
-                        control={form.control}
-                        name="time"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Horário</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedBarberForNewAppointment}>
+                            control={form.control}
+                            name="time"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Horário</FormLabel>
                                 <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={!selectedBarberForNewAppointment ? "Selecione um barbeiro primeiro" : "Selecione um horário"} />
-                                </SelectTrigger>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="grid grid-cols-4 gap-2"
+                                        disabled={!selectedBarberForNewAppointment}
+                                    >
+                                        {!selectedBarberForNewAppointment && <p className="col-span-4 text-sm text-muted-foreground">Selecione um barbeiro primeiro.</p>}
+                                        {selectedBarberForNewAppointment && timeSlots.map((slot) => {
+                                            const isOccupied = occupiedTimeSlots.includes(slot);
+                                            return (
+                                                <FormItem key={slot}>
+                                                    <FormControl>
+                                                        <RadioGroupItem value={slot} id={slot} className="peer sr-only" disabled={isOccupied} />
+                                                    </FormControl>
+                                                    <FormLabel
+                                                        htmlFor={slot}
+                                                        className={cn(
+                                                            "flex h-9 items-center justify-center rounded-md border text-sm font-normal",
+                                                            "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                                                            !isOccupied && "cursor-pointer peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground",
+                                                            isOccupied ? "bg-red-200 text-destructive-foreground dark:bg-red-800" : "bg-green-200 dark:bg-green-800"
+                                                        )}
+                                                    >
+                                                        {slot}
+                                                    </FormLabel>
+                                                </FormItem>
+                                            )
+                                        })}
+                                    </RadioGroup>
                                 </FormControl>
-                                <SelectContent>
-                                {availableTimeSlots.map((slot) => (
-                                    <SelectItem key={slot} value={slot}>
-                                    {slot}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
+                                <FormMessage />
+                                </FormItem>
+                            )}
                         />
                         <DialogFooter>
                         <DialogClose asChild>
@@ -360,3 +377,5 @@ export function SchedulePageContent() {
     </div>
   );
 }
+
+    
