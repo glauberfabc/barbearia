@@ -14,6 +14,7 @@ import {
   CreditCard,
   BookUser,
   Contact,
+  PanelLeft,
 } from 'lucide-react';
 
 import {
@@ -25,7 +26,8 @@ import {
   SidebarMenuButton,
   SidebarProvider,
   SidebarInset,
-  SidebarFooter
+  SidebarFooter,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -104,7 +106,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="flex flex-col">
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-4 border-b bg-background px-4 sm:px-6">
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:justify-end sm:px-6">
+            <SidebarTrigger className="sm:hidden" />
           <div className="flex items-center gap-4">
             <Badge variant="destructive">Versão demonstração, as alterações não são salvas.</Badge>
             <ThemeToggle />
